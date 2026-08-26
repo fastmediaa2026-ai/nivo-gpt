@@ -488,7 +488,8 @@
 
     <script>
         let currentChatId = Date.now().toString();
-        let chatsHistory = JSON.parse(localStorage.getItem('nivo_chats') || '{}');
+        // مسح الذاكرة المؤقتة القديمة تماماً لتجنب ظهور "محادثة جديدة" بالخطأ
+        let chatsHistory = JSON.parse(localStorage.getItem('nivo_chats_v2') || '{}');
         let activeAttachment = null;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -519,12 +520,13 @@
             
             const chatIds = Object.keys(chatsHistory);
             if (chatIds.length === 0) {
-                historyList.innerHTML = '<div style="font-size: 12px; color: #9ca3af; padding: 6px 8px;">لا توجد محادثات سابقة</div>';
+                // إذا لم تكن هناك محادثات سابقة، يظهر نص توضيحي نظيف بدلاً من زر وهمي
+                historyList.innerHTML = '<div style="font-size: 12px; color: #9ca3af; padding: 8px; text-align: center;">لا توجد محادثات سابقة</div>';
                 return;
             }
 
             chatIds.reverse().forEach(id => {
-                const chatTitle = chatsHistory[id].title || 'محادثة';
+                const chatTitle = chatsHistory[id].title || 'محادثة جديدة';
                 const item = document.createElement('div');
                 item.className = 'history-item';
                 item.innerHTML = `
@@ -561,7 +563,7 @@
         function deleteChat(event, id) {
             event.stopPropagation();
             delete chatsHistory[id];
-            localStorage.setItem('nivo_chats', JSON.stringify(chatsHistory));
+            localStorage.setItem('nivo_chats_v2', JSON.stringify(chatsHistory));
             if (currentChatId === id) startNewChat();
             renderHistoryList();
         }
@@ -584,7 +586,7 @@
 
             activeAttachment = {
                 name: file.name,
-                size: (file.size / 1024).toFixed(1) + ' KB',
+                size: (file.size / 1024).Divider ? '' : (file.size / 1024).toFixed(1) + ' KB',
                 type: file.type
             };
 
@@ -615,7 +617,7 @@
 
             appendMessageUI('user', text, activeAttachment);
             
-            const firstUserMsg = text || (activeAttachment ? 'مرفق: ' + activeAttachment.name : 'محادثة');
+            const firstUserMsg = text || (activeAttachment ? 'مرفق: ' + activeAttachment.name : 'محادثة جديدة');
             saveMessageToHistory(userMessageData, firstUserMsg);
 
             inputField.value = '';
@@ -658,11 +660,9 @@
                     title: newTitle ? newTitle.slice(0, 24) : 'محادثة',
                     messages: []
                 };
-            } else if (newTitle && chatsHistory[currentChatId].title === 'محادثة') {
-                chatsHistory[currentChatId].title = newTitle.slice(0, 24);
             }
             chatsHistory[currentChatId].messages.push(msgObj);
-            localStorage.setItem('nivo_chats', JSON.stringify(chatsHistory));
+            localStorage.setItem('nivo_chats_v2', JSON.stringify(chatsHistory));
             renderHistoryList();
         }
     </script>
