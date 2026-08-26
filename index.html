@@ -795,8 +795,8 @@
                     
                     <div class="attachment-preview" id="attachmentPreview" style="display: none;">
                         <div class="file-info">
-                            <i class="fa-solid fa-file-image" id="fileIcon"></i>
-                            <span id="fileName">image.jpg</span>
+                            <i class="fa-solid fa-file" id="fileIcon"></i>
+                            <span id="fileName">document.pdf</span>
                         </div>
                         <button class="remove-file-btn" onclick="removeAttachment()"><i class="fa-solid fa-xmark"></i></button>
                     </div>
@@ -805,7 +805,7 @@
                         <button class="icon-btn attach-btn" title="إرفاق ملف" onclick="document.getElementById('fileInput').click()">
                             <i class="fa-solid fa-plus"></i>
                         </button>
-                        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelected(event)">
+                        <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelected(event)">
 
                         <textarea id="userInput" placeholder="اكتب رسالتك أو اطلب تحليلاً..." rows="1" oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
 
@@ -1259,6 +1259,9 @@
             }
         }
 
+        // ==========================================
+        // تعديل 1: قراءة الملف وتحويله لـ Base64
+        // ==========================================
         function handleFileSelected(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1284,6 +1287,9 @@
             document.getElementById('attachmentPreview').style.display = 'none';
         }
 
+        // ==========================================
+        // تعديل 2: إرسال الصورة كـ Payload وإضافة زر التحميل ⬇️
+        // ==========================================
         async function sendMessage() {
             const currentCode = localStorage.getItem('nivo_user_code') || '';
             const cust = customersList.find(c => c.code === currentCode);
@@ -1337,7 +1343,7 @@
                         loadingElement.innerHTML = `
                             <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
                                 <img src="${data.reply}" style="max-width: 100%; border-radius: 8px; margin-top: 6px;" alt="صورة متولدة" />
-                                <a href="${data.reply}" target="_blank" download="nivo-image.png" style="background: #10a37f; color: #ffffff; padding: 6px 12px; border-radius: 6px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: bold;">
+                                <a href="${data.reply}" target="_blank" download="nivo-generated-image.png" style="background: #10a37f; color: #ffffff; padding: 6px 12px; border-radius: 6px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: bold;">
                                     <i class="fa-solid fa-download"></i> تحميل الصورة ⬇️
                                 </a>
                             </div>
@@ -1366,17 +1372,13 @@
 
             let attachmentHtml = '';
             if (attachment) {
-                if (attachment.dataUrl && attachment.type && attachment.type.startsWith('image/')) {
-                    attachmentHtml = `<div style="margin-bottom: 8px;"><img src="${attachment.dataUrl}" style="max-width: 180px; max-height: 180px; border-radius: 8px; object-fit: cover; display: block;" alt="${attachment.name}"></div>`;
-                } else {
-                    attachmentHtml = '<div style="font-size: 12px; background: rgba(0,0,0,0.06); padding: 4px 8px; border-radius: 6px; margin-bottom: 6px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-paperclip"></i><span>' + attachment.name + '</span></div><br>';
-                }
+                attachmentHtml = '<div style="font-size: 12px; background: rgba(0,0,0,0.06); padding: 4px 8px; border-radius: 6px; margin-bottom: 6px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-paperclip"></i><span>' + attachment.name + '</span></div><br>';
             }
 
             let contentHtml = isImage ? `
                 <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
-                    <img src="${text}" style="max-width: 100%; border-radius: 8px;" alt="Generated Image" />
-                    <a href="${text}" target="_blank" download="nivo-image.png" style="background: #10a37f; color: #ffffff; padding: 6px 12px; border-radius: 6px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: bold;">
+                    <img src="${text}" style="max-width: 100%; border-radius: 8px;" alt="صورة متولدة" />
+                    <a href="${text}" target="_blank" download="nivo-generated-image.png" style="background: #10a37f; color: #ffffff; padding: 6px 12px; border-radius: 6px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: bold;">
                         <i class="fa-solid fa-download"></i> تحميل الصورة ⬇️
                     </a>
                 </div>
