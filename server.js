@@ -17,31 +17,25 @@ app.get('/', (req, res) => {
 app.post('/api/chat', async (req, res) => {
     const { message, model, attachment } = req.body;
 
-    // مسار Replicate لتوليد الصور فقط
+    // 1. مسار توليد الصور عبر Replicate (نموذج SDXL المعتمد)
     if (model === 'sdxl-lightning') {
         try {
             const output = await replicate.run(
-                "bytedance/sdxl-lightning-4step:5599ed30703defd1d160a25a63321b4dec97101d98b4674bcc24237e78a67f35",
+                "stability-ai/sdxl:7762fd07cf82c948538e41f63ee7d35cc0e06224442abb055b870a09e97ce5b9",
                 {
                     input: {
                         prompt: message,
                         width: 1024,
-                        height: 1024,
-                        num_outputs: 1
+                        height: 1024
                     }
                 }
             );
 
             let imageUrl = '';
             if (Array.isArray(output) && output.length > 0) {
-                const item = output[0];
-                imageUrl = (typeof item === 'object' && item !== null && typeof item.url === 'function') 
-                    ? item.url() 
-                    : (item.url || String(item));
+                imageUrl = typeof output[0] === 'string' ? output[0] : (output[0].url ? output[0].url() : String(output[0]));
             } else if (typeof output === 'string') {
                 imageUrl = output;
-            } else if (output && typeof output.url === 'function') {
-                imageUrl = output.url();
             }
 
             return res.json({ reply: imageUrl, isImage: true });
@@ -51,7 +45,7 @@ app.post('/api/chat', async (req, res) => {
         }
     }
 
-    // مسار OpenAI (محادثة نصية + تحليل صور مرفوعة)
+    // 2. مسار OpenAI (محادثات نصية + فحص وتحليل الصور المرفوعة)
     try {
         let targetModel = 'gpt-4o-mini';
         if (model === 'gpt-4o') targetModel = 'gpt-4o';
@@ -59,11 +53,8 @@ app.post('/api/chat', async (req, res) => {
         if (model === 'o3') targetModel = 'o1';
 
         let userContent = [];
-        if (message && message.trim()) {
-            userContent.push({ type: "text", text: message.trim() });
-        } else {
-            userContent.push({ type: "text", text: "حلل هذه الصورة بالتفصيل." });
-        }
+        const textPrompt = message && message.trim() ? message.trim() : "حلل محتوى هذه الصورة بدقة واشرح ما تحتويه.";
+        userContent.push({ type: "text", text: textPrompt });
 
         if (attachment && attachment.dataUrl) {
             userContent.push({
