@@ -17,20 +17,24 @@ app.get('/', (req, res) => {
 app.post('/api/chat', async (req, res) => {
     const { message, model, attachment } = req.body;
 
-    // 1. توليد الصور عبر Replicate
+    // 1. توليد الصور عبر Replicate بالنسخة الصحيحة
     if (model === 'sdxl-lightning') {
         try {
             const output = await replicate.run(
                 "bytedance/sdxl-lightning-4step:5599ed30703defd1d160a25a63321b4dec97101d98b4674bcc24237e78a67f35",
-                { input: { prompt: message, width: 1024, height: 1024, num_outputs: 1 } }
+                {
+                    input: {
+                        prompt: message,
+                        width: 1024,
+                        height: 1024,
+                        num_outputs: 1
+                    }
+                }
             );
 
             let imageUrl = '';
             if (Array.isArray(output) && output.length > 0) {
-                const first = output[0];
-                imageUrl = (typeof first === 'object' && first !== null && typeof first.url === 'function') 
-                    ? first.url() 
-                    : (first.url || String(first));
+                imageUrl = typeof output[0] === 'string' ? output[0] : (output[0].url ? output[0].url() : String(output[0]));
             } else if (typeof output === 'string') {
                 imageUrl = output;
             } else if (output && typeof output.url === 'function') {
@@ -44,7 +48,7 @@ app.post('/api/chat', async (req, res) => {
         }
     }
 
-    // 2. المحادثات وتحليل الصور عبر OpenAI
+    // 2. المحادثات وتحليل الصور المرفوعة عبر OpenAI
     try {
         let targetModel = 'gpt-4o-mini';
         if (model === 'gpt-4o') targetModel = 'gpt-4o';
