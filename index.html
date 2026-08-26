@@ -137,6 +137,11 @@
             gap: 3px;
         }
 
+        .user-status-card.invalid {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
         .user-status-header {
             display: flex;
             align-items: center;
@@ -144,6 +149,10 @@
             font-size: 12px;
             font-weight: 700;
             color: #10a37f;
+        }
+
+        .user-status-card.invalid .user-status-header {
+            color: #ef4444;
         }
 
         .user-status-sub {
@@ -725,16 +734,15 @@
             </div>
 
             <div class="sidebar-footer">
-                <div class="user-status-card">
+                <div class="user-status-card" id="userStatusCardBox">
                     <div class="user-status-header">
                         <span id="userStatusText"><i class="fa-solid fa-circle-check"></i> الاشتراك: نشط</span>
-                        <span>30 يوم</span>
+                        <span id="userStatusDuration">30 يوم</span>
                     </div>
-                    <div class="user-status-sub" id="displayUserPhone">الهاتف: 01096056061</div>
-                    <div class="user-status-sub" id="displayUserCode">الكود: NIVO-MASTER-2026</div>
+                    <div class="user-status-sub" id="displayUserPhone">الهاتف: --</div>
+                    <div class="user-status-sub" id="displayUserCode">الكود: --</div>
                 </div>
 
-                <!-- زر دخول الأدمن المباشر الدائم -->
                 <button class="action-link-btn master-admin-btn" onclick="activateMasterAdmin(); closeSidebarOnMobile();">
                     <i class="fa-solid fa-crown"></i> دخول كأدمن دائم (Master Admin)
                 </button>
@@ -920,20 +928,22 @@
         let chatsHistory = JSON.parse(localStorage.getItem('nivo_chats_fixed') || '{}');
         let activeAttachment = null;
 
-        // قاعدة بيانات العملاء المخزنة في المتصفح
         let defaultCustomers = [
-            { id: '1', name: 'أحمد (الرئيسي)', phone: '01096056061', code: 'NIVO-MASTER-2026', duration: 'مفتوح (أدمن)', status: 'admin' },
-            { id: '2', name: 'عميل تجريبي', phone: '01559740555', code: 'NIVO-78A1-99B2', duration: '30 يوم', status: 'active' }
+            { id: '1', name: 'أحمد (الرئيسي)', phone: '01096056061', code: 'NIVO-MASTER-2026', duration: 'مفتوح (أدمن)', status: 'admin' }
         ];
 
         let customersList = JSON.parse(localStorage.getItem('nivo_customers_list') || JSON.stringify(defaultCustomers));
 
         document.addEventListener('DOMContentLoaded', () => {
-            const savedCode = localStorage.getItem('nivo_user_code') || 'NIVO-MASTER-2026';
-            const savedPhone = localStorage.getItem('nivo_user_phone') || '01096056061';
+            let savedCode = localStorage.getItem('nivo_user_code') || 'NIVO-MASTER-2026';
+            let savedPhone = localStorage.getItem('nivo_user_phone') || '01096056061';
             
-            localStorage.setItem('nivo_user_code', savedCode);
-            localStorage.setItem('nivo_user_phone', savedPhone);
+            // التحقق من وجود الكود حقيقة في القائمة
+            const exists = customersList.find(c => c.code === savedCode);
+            if (!exists && savedCode !== 'NIVO-MASTER-2026') {
+                savedCode = 'NIVO-MASTER-2026';
+                localStorage.setItem('nivo_user_code', savedCode);
+            }
 
             checkUserStatusDisplay(savedCode, savedPhone);
             renderCustomersTable();
@@ -950,17 +960,31 @@
 
         function checkUserStatusDisplay(code, phone) {
             const statusTextEl = document.getElementById('userStatusText');
+            const statusDurationEl = document.getElementById('userStatusDuration');
             const codeEl = document.getElementById('displayUserCode');
             const phoneEl = document.getElementById('displayUserPhone');
+            const cardBox = document.getElementById('userStatusCardBox');
 
             phoneEl.innerText = 'الهاتف: ' + phone;
             codeEl.innerText = 'الكود: ' + code;
 
             const cust = customersList.find(c => c.code === code);
-            if (cust && (cust.status === 'banned' || cust.status === 'refunded') && code !== 'NIVO-MASTER-2026') {
-                statusTextEl.innerHTML = '<i class="fa-solid fa-ban" style="color:#ef4444;"></i> <span style="color:#ef4444;">الاشتراك: ملغي / محظور</span>';
+
+            if (!cust && code !== 'NIVO-MASTER-2026') {
+                cardBox.className = 'user-status-card invalid';
+                statusTextEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> غير صالح / محذوف';
+                statusDurationEl.innerText = 'منتهي';
+                return;
+            }
+
+            if (cust && (cust.status === 'banned' || cust.status === 'refunded')) {
+                cardBox.className = 'user-status-card invalid';
+                statusTextEl.innerHTML = '<i class="fa-solid fa-ban"></i> محظور / ملغي';
+                statusDurationEl.innerText = 'متوقف';
             } else {
-                statusTextEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span>الاشتراك: نشط</span>';
+                cardBox.className = 'user-status-card';
+                statusTextEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> الاشتراك: نشط';
+                statusDurationEl.innerText = cust ? cust.duration : '30 يوم';
             }
         }
 
@@ -970,7 +994,6 @@
 
             customersList.forEach(cust => {
                 const tr = document.createElement('tr');
-                
                 let badgeHtml = '';
                 let actionsHtml = '';
 
@@ -1027,6 +1050,11 @@
 
             updateDashboardCounts();
             localStorage.setItem('nivo_customers_list', JSON.stringify(customersList));
+
+            // تحديث عرض الشات الحالي فوراً إذا تم الحذف
+            const activeCode = localStorage.getItem('nivo_user_code');
+            const activePhone = localStorage.getItem('nivo_user_phone');
+            checkUserStatusDisplay(activeCode, activePhone);
         }
 
         function changeCustomerStatus(id, newStatus) {
@@ -1034,14 +1062,9 @@
             if (cust) {
                 cust.status = newStatus;
                 renderCustomersTable();
-                const activeUserCode = localStorage.getItem('nivo_user_code');
-                if (activeUserCode === cust.code) {
-                    checkUserStatusDisplay(cust.code, localStorage.getItem('nivo_user_phone') || '');
-                }
             }
         }
 
-        /* حذف نهائي وحقيقي من القائمة والذاكرة */
         function deleteCustomerReal(id) {
             customersList = customersList.filter(c => c.id !== id);
             renderCustomersTable();
@@ -1113,8 +1136,12 @@
 
             const cust = customersList.find(c => c.code === val);
 
-            if (cust && (cust.status === 'banned' || cust.status === 'refunded') && val !== 'NIVO-MASTER-2026') {
-                return alert('عذراً، هذا الكود ملغي أو تم حظره من قبل الإدارة!');
+            if (!cust && val !== 'NIVO-MASTER-2026') {
+                return alert('عذراً، هذا الكود غير موجود أو تم حذفه نهائياً!');
+            }
+
+            if (cust && (cust.status === 'banned' || cust.status === 'refunded')) {
+                return alert('عذراً، هذا الكود ملغي أو محظور من الإدارة!');
             }
 
             if (cust && cust.status === 'unused') {
@@ -1235,8 +1262,8 @@
             const currentCode = localStorage.getItem('nivo_user_code') || '';
             const cust = customersList.find(c => c.code === currentCode);
 
-            if (cust && (cust.status === 'banned' || cust.status === 'refunded') && currentCode !== 'NIVO-MASTER-2026') {
-                alert('عذراً، هذا الحساب ملغي أو محظور. يرجى التواصل مع الإدارة.');
+            if ((!cust && currentCode !== 'NIVO-MASTER-2026') || (cust && (cust.status === 'banned' || cust.status === 'refunded'))) {
+                alert('عذراً، هذا الحساب غير موجود أو تم إلغاؤه من الإدارة.');
                 return;
             }
 
