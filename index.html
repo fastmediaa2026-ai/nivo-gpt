@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nivo Admin & Preview</title>
+    <title>Nivo ChatGPT</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -15,7 +15,7 @@
 
         body {
             background-color: #ffffff !important;
-            color: #374151 !important;
+            color: #1f2937 !important;
             height: 100vh;
             overflow: hidden;
         }
@@ -109,20 +109,45 @@
         }
 
         .top-header {
-            height: 55px;
+            height: 60px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 24px;
+            padding: 0 20px;
             border-bottom: 1px solid #f3f4f6;
         }
 
-        .logo-text {
-            font-weight: 700;
-            letter-spacing: 1px;
+        /* تنسيق صندوق اللوجو والعنوان */
+        .brand-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo-img {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .branding-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+        }
+
+        .logo-title {
+            font-weight: 800;
+            letter-spacing: 0.5px;
             font-size: 16px;
-            color: #1f2937;
-            margin-left: 12px;
+            color: #111827;
+        }
+
+        .logo-subtitle {
+            font-size: 12px;
+            color: #4b5563;
+            font-weight: 600;
         }
 
         .model-dropdown {
@@ -133,6 +158,7 @@
             border-radius: 6px;
             font-size: 13px;
             outline: none;
+            cursor: pointer;
         }
 
         .chat-container {
@@ -240,6 +266,10 @@
             cursor: pointer;
         }
 
+        .remove-file-btn:hover {
+            color: #ef4444;
+        }
+
         .input-row {
             display: flex;
             align-items: flex-end;
@@ -296,7 +326,7 @@
 <body>
 
     <div class="app-layout">
-        <!-- 1. القائمة الجانبية (Sidebar) -->
+        <!-- 1. القائمة الجانبية -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <button class="new-chat-btn" onclick="startNewChat()">
@@ -321,8 +351,17 @@
         <!-- 2. منطقة الشات والمعاينة الرئيسية -->
         <main class="main-content">
             <header class="top-header">
+                <div class="brand-wrapper">
+                    <!-- صورة اللوجو (إذا لم تكن متوفرة يظهر حرف N كبديل تلقائي) -->
+                    <img src="logo.png" alt="NIVO" class="brand-logo-img" onerror="this.src='https://api.iconify.design/logos:openai-icon.svg'">
+                    
+                    <div class="branding-text">
+                        <span class="logo-title">NIVO</span>
+                        <span class="logo-subtitle">ChatGPT</span>
+                    </div>
+                </div>
+
                 <div class="model-selector-container">
-                    <span class="logo-text">NIVO</span>
                     <select id="modelSelect" class="model-dropdown">
                         <option value="gpt-4o">GPT-4o (افتراضي)</option>
                         <option value="o3-mini">o3-mini (استنتاج سريع)</option>
@@ -369,6 +408,159 @@
         </main>
     </div>
 
-    <script src="app.js"></script>
+    <script>
+        let currentChatId = Date.now().toString();
+        let chatsHistory = JSON.parse(localStorage.getItem('nivo_chats') || '{}');
+        let activeAttachment = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderHistoryList();
+            loadChat(currentChatId);
+        });
+
+        function startNewChat() {
+            currentChatId = Date.now().toString();
+            removeAttachment();
+            const messagesWrapper = document.getElementById('messagesWrapper');
+            messagesWrapper.innerHTML = '';
+            document.getElementById('welcomeScreen').style.display = 'block';
+        }
+
+        function renderHistoryList() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            
+            Object.keys(chatsHistory).reverse().forEach(id => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <span><i class="fa-regular fa-message" style="margin-left: 6px;"></i> ${chatsHistory[id].title}</span>
+                    <i class="fa-solid fa-trash" onclick="deleteChat(event, '${id}')" style="font-size: 11px; opacity: 0.6;"></i>
+                `;
+                item.onclick = () => loadChat(id);
+                historyList.appendChild(item);
+            });
+        }
+
+        function loadChat(id) {
+            currentChatId = id;
+            const messagesWrapper = document.getElementById('messagesWrapper');
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            messagesWrapper.innerHTML = '';
+
+            if (chatsHistory[id] && chatsHistory[id].messages.length > 0) {
+                welcomeScreen.style.display = 'none';
+                chatsHistory[id].messages.forEach(msg => {
+                    appendMessageUI(msg.role, msg.content, msg.attachment);
+                });
+            } else {
+                welcomeScreen.style.display = 'block';
+            }
+        }
+
+        function deleteChat(event, id) {
+            event.stopPropagation();
+            delete chatsHistory[id];
+            localStorage.setItem('nivo_chats', JSON.stringify(chatsHistory));
+            if (currentChatId === id) startNewChat();
+            renderHistoryList();
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function handleFileSelected(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            activeAttachment = {
+                name: file.name,
+                size: (file.size / 1024).toFixed(1) + ' KB',
+                type: file.type
+            };
+
+            document.getElementById('fileName').innerText = activeAttachment.name + ' (' + activeAttachment.size + ')';
+            document.getElementById('attachmentPreview').style.display = 'flex';
+        }
+
+        function removeAttachment() {
+            activeAttachment = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('attachmentPreview').style.display = 'none';
+        }
+
+        function sendMessage() {
+            const inputField = document.getElementById('userInput');
+            const text = inputField.value.trim();
+            const model = document.getElementById('modelSelect').value;
+
+            if (!text && !activeAttachment) return;
+
+            document.getElementById('welcomeScreen').style.display = 'none';
+
+            const userMessageData = {
+                role: 'user',
+                content: text,
+                attachment: activeAttachment ? { ...activeAttachment } : null
+            };
+
+            appendMessageUI('user', text, activeAttachment);
+            saveMessageToHistory(userMessageData, text);
+
+            inputField.value = '';
+            inputField.style.height = 'auto';
+            removeAttachment();
+
+            const loadingId = 'loading-' + Date.now();
+            appendMessageUI('assistant', '<i class="fa-solid fa-spinner fa-spin"></i> جاري توليد الرد...', null, loadingId);
+
+            setTimeout(() => {
+                const loadingElement = document.getElementById(loadingId);
+                if (loadingElement) {
+                    const previewReply = '[معاينة وضع ' + model + ']: تم استلام طلبك بنجاح. الواجهة جاهزة بالكامل لربط استدعاء السيرفر عند التنفيذ.';
+                    loadingElement.innerHTML = previewReply;
+                    saveMessageToHistory({ role: 'assistant', content: previewReply });
+                }
+            }, 1000);
+        }
+
+        function appendMessageUI(role, text, attachment, elementId) {
+            const messagesWrapper = document.getElementById('messagesWrapper');
+            const row = document.createElement('div');
+            row.className = 'message-row ' + role;
+            if (elementId) row.id = elementId;
+
+            let attachmentHtml = '';
+            if (attachment) {
+                attachmentHtml = '<div style="font-size: 12px; background: rgba(0,0,0,0.06); padding: 4px 8px; border-radius: 6px; margin-bottom: 6px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-paperclip"></i><span>' + attachment.name + '</span></div><br>';
+            }
+
+            row.innerHTML = '<div class="message-bubble">' + attachmentHtml + '<div>' + text + '</div></div>';
+
+            messagesWrapper.appendChild(row);
+            document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
+        }
+
+        function saveMessageToHistory(msgObj, fallbackTitle) {
+            if (!chatsHistory[currentChatId]) {
+                chatsHistory[currentChatId] = {
+                    title: (fallbackTitle ? fallbackTitle.slice(0, 24) : 'محادثة جديدة'),
+                    messages: []
+                };
+            }
+            chatsHistory[currentChatId].messages.push(msgObj);
+            localStorage.setItem('nivo_chats', JSON.stringify(chatsHistory));
+            renderHistoryList();
+        }
+    </script>
 </body>
 </html>
