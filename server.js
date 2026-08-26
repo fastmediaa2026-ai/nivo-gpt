@@ -43,7 +43,7 @@ app.post('/api/chat', async (req, res) => {
     }
 
     // ==========================================
-    // 1. SDXL LIGHTNING
+    // 1. SDXL LIGHTNING (كود شات جي بي تي كما هو تماماً)
     // GPT-4o-mini → English Prompt
     // → Replicate → Image
     // ==========================================
@@ -245,26 +245,18 @@ IMPORTANT RULES:
             `OpenAI model: ${targetModel}`
         );
 
+        // تجهيز المدخلات: نصوص + صور إن وجدت
         let userContent = [];
-
         if (message && message.trim()) {
-            userContent.push({
-                type: "text",
-                text: message.trim()
-            });
+            userContent.push({ type: "text", text: message.trim() });
         } else {
-            userContent.push({
-                type: "text",
-                text: "حلل هذه الصورة بالتفصيل واشرح ما تحتويه."
-            });
+            userContent.push({ type: "text", text: "حلل هذه الصورة بالتفصيل واشرح ما تحتويه." });
         }
 
         if (attachment && attachment.dataUrl) {
             userContent.push({
                 type: "image_url",
-                image_url: {
-                    url: attachment.dataUrl
-                }
+                image_url: { url: attachment.dataUrl }
             });
         }
 
