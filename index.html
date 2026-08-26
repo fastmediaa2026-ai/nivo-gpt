@@ -919,7 +919,7 @@
     </div>
 
     <script>
-        const BACKEND_URL = 'https://nivo-gpt-production.up.railway.app';
+        const BACKEND_URL = 'https://nivo-gpt.fastmediaa2026.workers.dev';
 
         let currentChatId = Date.now().toString();
         let chatsHistory = JSON.parse(localStorage.getItem('nivo_chats_fixed') || '{}');
@@ -1366,7 +1366,7 @@
             appendMessageUI('assistant', '<i class="fa-solid fa-spinner fa-spin"></i> جاري الاتصال بالذكاء الاصطناعي...', null, loadingId);
 
             try {
-                const response = await fetch(`${BACKEND_URL}/api/chat`, {
+                const response = await fetch(`${BACKEND_URL}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: text, model: model, attachment: currentAttachment })
@@ -1396,7 +1396,7 @@
             } catch (err) {
                 const loadingElement = document.getElementById(loadingId);
                 if (loadingElement) {
-                    loadingElement.innerHTML = '<span style="color: #ef4444;"><i class="fa-solid fa-circle-exclamation"></i> تعذر الاتصال بسيرفر Railway، تأكد من تشغيل السيرفر.</span>';
+                    loadingElement.innerHTML = '<span style="color: #ef4444;"><i class="fa-solid fa-circle-exclamation"></i> تعذر الاتصال بالسيرفر، تأكد من الاتصال.</span>';
                 }
             }
         }
