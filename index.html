@@ -1268,7 +1268,7 @@
                 activeAttachment = {
                     name: file.name,
                     size: (file.size / 1024).toFixed(1) + ' KB',
-                    type: file.type,
+                    type: file.type || 'image/jpeg',
                     dataUrl: uploadEvent.target.result
                 };
 
@@ -1284,42 +1284,46 @@
             document.getElementById('attachmentPreview').style.display = 'none';
         }
 
-        // دالة تحميل الصورة كملف مباشر على الجهاز بدون الخروج من الصفحة
-        async function downloadImageDirect(btn, imageUrl) {
+        // تنزيل الصورة المباشر على الهاتف دون فتح شاشة خارجية أو الخروج من التطبيق
+        function downloadImageDirect(btn, imageUrl) {
             const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التنزيل...';
-            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
 
-            try {
-                const response = await fetch(imageUrl);
-                const blob = await response.blob();
-                const blobUrl = window.URL.createObjectURL(blob);
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = imageUrl;
 
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = `nivo-image-${Date.now()}.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(blobUrl);
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
 
-                btn.innerHTML = '<i class="fa-solid fa-check"></i> تم التنزيل بنجاح!';
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                    btn.disabled = false;
-                }, 2000);
-            } catch (err) {
-                console.error('Download error:', err);
-                // بديل في حال تعذر السحب المباشر
-                const fallbackLink = document.createElement('a');
-                fallbackLink.href = imageUrl;
-                fallbackLink.download = 'nivo-image.png';
-                fallbackLink.target = '_blank';
-                fallbackLink.click();
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const blobUrl = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = blobUrl;
+                        a.download = `nivo-image-${Date.now()}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(blobUrl);
 
+                        btn.innerHTML = '<i class="fa-solid fa-check"></i> تم الحفظ في الجهاز!';
+                    } else {
+                        window.open(imageUrl, '_blank');
+                        btn.innerHTML = originalHtml;
+                    }
+                    setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+                }, 'image/png');
+            };
+
+            img.onerror = () => {
+                window.open(imageUrl, '_blank');
                 btn.innerHTML = originalHtml;
-                btn.disabled = false;
-            }
+            };
         }
 
         async function sendMessage() {
@@ -1338,24 +1342,25 @@
 
             if (!text && !activeAttachment) return;
 
+            // تفريغ فوري لمربع النص لضمان عدم بقاء الكلام معلقاً
+            inputField.value = '';
+            inputField.style.height = 'auto';
+
             document.getElementById('welcomeScreen').style.display = 'none';
+
+            const currentAttachment = activeAttachment ? { ...activeAttachment } : null;
+            removeAttachment();
 
             const userMessageData = {
                 role: 'user',
                 content: text,
-                attachment: activeAttachment ? { ...activeAttachment } : null
+                attachment: currentAttachment
             };
 
-            appendMessageUI('user', text, activeAttachment);
+            appendMessageUI('user', text, currentAttachment);
             
-            const firstUserMsg = text || (activeAttachment ? 'مرفق: ' + activeAttachment.name : 'محادثة');
+            const firstUserMsg = text || (currentAttachment ? 'مرفق: ' + currentAttachment.name : 'محادثة');
             saveMessageToHistory(userMessageData, firstUserMsg);
-
-            const payloadAttachment = activeAttachment ? { ...activeAttachment } : null;
-
-            inputField.value = '';
-            inputField.style.height = 'auto';
-            removeAttachment();
 
             const loadingId = 'loading-' + Date.now();
             appendMessageUI('assistant', '<i class="fa-solid fa-spinner fa-spin"></i> جاري الاتصال بالذكاء الاصطناعي...', null, loadingId);
@@ -1364,7 +1369,7 @@
                 const response = await fetch(`${BACKEND_URL}/api/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, model: model, attachment: payloadAttachment })
+                    body: JSON.stringify({ message: text, model: model, attachment: currentAttachment })
                 });
 
                 const data = await response.json();
