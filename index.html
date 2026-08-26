@@ -23,7 +23,7 @@
 
         .app-layout {
             display: flex;
-            height: 100vh;
+            height: 100%;
             width: 100vw;
             position: relative;
             overflow: hidden;
@@ -246,7 +246,7 @@
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 16px;
+            padding: 16px 16px 110px 16px; /* مساحة فارغة تحت تضمن عدم تغطية الرسائل */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -304,23 +304,28 @@
             padding-right: 0;
         }
 
+        /* تثبيت شريط الإدخال بشكل قاطع فوق شريط المتصفح */
         .input-area-wrapper {
-            padding: 10px 16px 24px;
+            position: fixed;
+            bottom: 25px; /* رفع الشريط بمقدار ثابت يضمن ظهوره فوق شريط الكروم */
+            left: 0;
+            right: 0;
+            padding: 0 16px;
             display: flex;
             justify-content: center;
-            background: #ffffff;
-            border-top: 1px solid #f3f4f6;
-            flex-shrink: 0;
+            z-index: 50;
+            pointer-events: none;
         }
 
         .input-box-container {
+            pointer-events: auto;
             width: 100%;
             max-width: 768px;
             background-color: #ffffff !important;
             border-radius: 22px;
             padding: 6px 10px;
             border: 1px solid #d1d5db;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
             display: flex;
             flex-direction: column;
         }
@@ -506,7 +511,6 @@
                     <span><i class="fa-solid fa-shield-halved"></i> وضع الأدمن (نشط)</span>
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
-                <!-- زر معاينة نافذة كود العميل السريع -->
                 <button class="preview-client-btn" onclick="openActivationModal(); closeSidebarOnMobile();">
                     <i class="fa-solid fa-eye"></i>
                     <span>معاينة نافذة كود العميل</span>
@@ -548,7 +552,7 @@
                 <div class="messages-wrapper" id="messagesWrapper"></div>
             </div>
 
-            <!-- شريط الإدخال المرفوع للموبايل -->
+            <!-- شريط الإدخال الثابت في مكان محدد -->
             <div class="input-area-wrapper">
                 <div class="input-box-container">
                     
@@ -578,7 +582,7 @@
         </main>
     </div>
 
-    <!-- نافذة تفعيل الكود المنبثقة للعميل -->
+    <!-- نافذة التفعيل المنبثقة -->
     <div class="activation-modal" id="activationModal">
         <div class="activation-card">
             <button class="close-modal-btn" onclick="closeActivationModal()"><i class="fa-solid fa-xmark"></i></button>
@@ -593,7 +597,7 @@
 
     <script>
         let currentChatId = Date.now().toString();
-        let chatsHistory = JSON.parse(localStorage.getItem('nivo_chats_v5') || '{}');
+        let chatsHistory = JSON.parse(localStorage.getItem('nivo_chats_fixed') || '{}');
         let activeAttachment = null;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -684,7 +688,7 @@
         function deleteChat(event, id) {
             event.stopPropagation();
             delete chatsHistory[id];
-            localStorage.setItem('nivo_chats_v5', JSON.stringify(chatsHistory));
+            localStorage.setItem('nivo_chats_fixed', JSON.stringify(chatsHistory));
             if (currentChatId === id) startNewChat();
             renderHistoryList();
         }
@@ -785,7 +789,7 @@
                 chatsHistory[currentChatId].title = newTitle.slice(0, 24);
             }
             chatsHistory[currentChatId].messages.push(msgObj);
-            localStorage.setItem('nivo_chats_v5', JSON.stringify(chatsHistory));
+            localStorage.setItem('nivo_chats_fixed', JSON.stringify(chatsHistory));
             renderHistoryList();
         }
     </script>
