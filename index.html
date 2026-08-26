@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nivo ChatGPT</title>
+    <title>Nivo Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -21,7 +21,8 @@
             overflow: hidden;
         }
 
-        .app-layout {
+        /* حاوية واجهة الشات */
+        #userChatView {
             display: flex;
             height: 100%;
             width: 100vw;
@@ -131,10 +132,10 @@
             background: rgba(16, 163, 127, 0.08);
             border: 1px solid rgba(16, 163, 127, 0.2);
             border-radius: 8px;
-            padding: 10px;
+            padding: 8px 10px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
         }
 
         .user-status-header {
@@ -151,20 +152,30 @@
             color: #4b5563;
         }
 
-        .reset-code-btn {
+        .action-link-btn {
             background: #ffffff;
             border: 1px solid #d1d5db;
-            color: #6b7280;
-            padding: 6px 10px;
+            color: #374151;
+            padding: 7px 10px;
             border-radius: 6px;
-            font-size: 11px;
+            font-size: 11.5px;
             cursor: pointer;
             text-align: center;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
-        .reset-code-btn:hover {
-            background: #f9fafb;
-            color: #111827;
+        .admin-switch-btn {
+            background: #111827;
+            color: #ffffff;
+            border: none;
+        }
+
+        .admin-switch-btn:hover {
+            background: #1f2937;
         }
 
         .sidebar-overlay {
@@ -407,7 +418,7 @@
             color: #1f2937;
         }
 
-        /* نافذة التفعيل التلقائية للعميل */
+        /* نافذة التفعيل المنبثقة */
         .activation-modal {
             display: none;
             position: fixed;
@@ -457,6 +468,130 @@
             cursor: pointer;
         }
 
+        /* ================== تصميم لوحة تحكم الأدمن ================== */
+        #adminDashboardView {
+            display: none;
+            height: 100%;
+            width: 100vw;
+            background: #f3f4f6;
+            overflow-y: auto;
+            padding: 20px 16px;
+        }
+
+        .admin-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .admin-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .back-to-chat-btn {
+            background: #10a37f;
+            color: #ffffff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .stat-number {
+            font-size: 22px;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .stat-title {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .admin-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .admin-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .generate-btn {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .codes-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .codes-table th, .codes-table td {
+            padding: 10px 12px;
+            text-align: right;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .badge-active {
+            background: rgba(22, 163, 74, 0.1);
+            color: #16a34a;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+
+        .badge-unused {
+            background: rgba(37, 99, 235, 0.1);
+            color: #2563eb;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+
         @media (max-width: 768px) {
             .menu-toggle-btn {
                 display: block;
@@ -483,10 +618,10 @@
 </head>
 <body>
 
-    <div class="app-layout">
+    <!-- 1. شاشة الشات والعميل -->
+    <div id="userChatView">
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-        <!-- القائمة الجانبية -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <button class="new-chat-btn" onclick="startNewChat(); closeSidebarOnMobile();">
@@ -508,13 +643,19 @@
                     </div>
                     <div class="user-status-sub" id="displayUserCode">الكود: NIVO-MASTER-2026</div>
                 </div>
-                <button class="reset-code-btn" onclick="reopenActivationScreen(); closeSidebarOnMobile();">
+
+                <!-- زر إعادة فتح نافذة الكود -->
+                <button class="action-link-btn" onclick="reopenActivationScreen(); closeSidebarOnMobile();">
                     <i class="fa-solid fa-key"></i> تجربة إدخال كود جديد
+                </button>
+
+                <!-- زر الانتقال إلى لوحة تحكم الأدمن -->
+                <button class="action-link-btn admin-switch-btn" onclick="showAdminView(); closeSidebarOnMobile();">
+                    <i class="fa-solid fa-shield-halved"></i> لوحة تحكم الأدمن
                 </button>
             </div>
         </aside>
 
-        <!-- منطقة الشات الرئيسية -->
         <main class="main-content">
             <header class="top-header">
                 <div class="header-right-side">
@@ -577,7 +718,74 @@
         </main>
     </div>
 
-    <!-- نافذة تفعيل الكود للعميل (مملوءة تلقائياً بكود الماستر) -->
+    <!-- 2. شاشة لوحة تحكم الأدمن -->
+    <div id="adminDashboardView">
+        <div class="admin-container">
+            <div class="admin-top-bar">
+                <div>
+                    <h2 style="font-size: 18px; color: #111827;">لوحة تحكم الأدمن (NIVO Admin)</h2>
+                    <p style="font-size: 12px; color: #6b7280; margin-top: 2px;">إدارة التراخيص والأكواد والاشتراكات</p>
+                </div>
+                <button class="back-to-chat-btn" onclick="showUserChatView()">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>معاينة واجهة العميل (الشات)</span>
+                </button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-title">المشتركين النشطين</span>
+                    <span class="stat-number" id="activeSubsCount">1</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-title">الأكواد الجاهزة للبيع</span>
+                    <span class="stat-number" id="availableCodesCount">4</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-title">استهلاك النماذج</span>
+                    <span class="stat-number">GPT-4o / Flux</span>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h3 style="font-size: 15px; color: #111827;">إدارة وتوليد أكواد التفعيل</h3>
+                    <button class="generate-btn" onclick="generateNewCode()">
+                        <i class="fa-solid fa-plus"></i> توليد كود جديد
+                    </button>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="codes-table">
+                        <thead>
+                            <tr>
+                                <th>كود الاشتراك</th>
+                                <th>المدة</th>
+                                <th>الحالة</th>
+                                <th>الإجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="codesTableBody">
+                            <tr>
+                                <td style="font-weight: bold; letter-spacing: 1px;">NIVO-MASTER-2026</td>
+                                <td>مفتوح (أدمن)</td>
+                                <td><span class="badge-active">نشط دائم</span></td>
+                                <td><i class="fa-solid fa-lock" style="color: #9ca3af;"></i></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold; letter-spacing: 1px;">NIVO-78A1-99B2</td>
+                                <td>30 يوم</td>
+                                <td><span class="badge-unused">جاهز للإرسال</span></td>
+                                <td><button style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="this.closest('tr').remove()"><i class="fa-solid fa-trash"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تفعيل الكود للعميل -->
     <div class="activation-modal" id="activationModal">
         <div class="activation-card">
             <img src="logo.png" alt="NIVO" style="width: 44px; height: 44px; border-radius: 8px; margin-bottom: 8px;" onerror="this.src='https://api.iconify.design/logos:openai-icon.svg'">
@@ -596,20 +804,39 @@
         let chatsHistory = JSON.parse(localStorage.getItem('nivo_chats_fixed') || '{}');
         let activeAttachment = null;
 
-        // فحص حالة التفعيل: إذا كان مفعلاً من قبل يفتح فوراً، وإذا أول مرة تظهر نافذة التفعيل
         document.addEventListener('DOMContentLoaded', () => {
-            const savedCode = localStorage.getItem('nivo_user_code');
-            if (savedCode) {
-                document.getElementById('displayUserCode').innerText = 'الكود: ' + savedCode;
-                document.getElementById('activationModal').style.display = 'none';
-            } else {
-                // تفعيل تلقائي فوري بكود الماستر لراحتك التامة
-                localStorage.setItem('nivo_user_code', 'NIVO-MASTER-2026');
-                document.getElementById('activationModal').style.display = 'none';
-            }
+            const savedCode = localStorage.getItem('nivo_user_code') || 'NIVO-MASTER-2026';
+            localStorage.setItem('nivo_user_code', savedCode);
+            document.getElementById('displayUserCode').innerText = 'الكود: ' + savedCode;
+            
             renderHistoryList();
             loadChat(currentChatId);
         });
+
+        /* وظائف التبديل بين واجهة الشات ولوحة الأدمن */
+        function showAdminView() {
+            document.getElementById('userChatView').style.display = 'none';
+            document.getElementById('adminDashboardView').style.display = 'block';
+        }
+
+        function showUserChatView() {
+            document.getElementById('adminDashboardView').style.display = 'none';
+            document.getElementById('userChatView').style.display = 'flex';
+        }
+
+        function generateNewCode() {
+            const rand = Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+            const newCode = 'NIVO-' + rand;
+            const tbody = document.getElementById('codesTableBody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight: bold; letter-spacing: 1px;">${newCode}</td>
+                <td>30 يوم</td>
+                <td><span class="badge-unused">جاهز للإرسال</span></td>
+                <td><button style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="this.closest('tr').remove()"><i class="fa-solid fa-trash"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        }
 
         function handleActivationSubmit() {
             const val = document.getElementById('activationInput').value.trim() || 'NIVO-MASTER-2026';
