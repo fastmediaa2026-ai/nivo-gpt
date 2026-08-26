@@ -4,302 +4,75 @@ const OpenAI = require('openai');
 const Replicate = require('replicate');
 
 const app = express();
-
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
-// ==========================================
-// API CLIENTS
-// ==========================================
-
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
-
-const replicate = new Replicate({
-    auth: process.env.REPLICATE_API_TOKEN
-});
-
-// ==========================================
-// HEALTH CHECK
-// ==========================================
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
 
 app.get('/', (req, res) => {
     res.status(200).send('OK');
 });
 
-// ==========================================
-// CHAT / IMAGE API
-// ==========================================
-
 app.post('/api/chat', async (req, res) => {
+    const { message, model, attachment } = req.body;
 
-    const { message, model } = req.body;
-
-    if (!message) {
-        return res.status(400).json({
-            error: 'الرسالة مطلوبة'
-        });
-    }
-
-    // ==========================================
-    // 1. SDXL LIGHTNING
-    // GPT-4o-mini → English Prompt
-    // → Replicate → Image
-    // ==========================================
-
+    // 1. توليد الصور عبر Replicate
     if (model === 'sdxl-lightning') {
-
         try {
-
-            console.log('Original user prompt:', message);
-
-            // ------------------------------------------
-            // STEP 1: Translate / Optimize Prompt
-            // using GPT-4o-mini
-            // ------------------------------------------
-
-            const promptCompletion =
-                await openai.chat.completions.create({
-
-                    model: 'gpt-4o-mini',
-
-                    messages: [
-                        {
-                            role: 'system',
-                            content: `
-You are an expert AI image prompt translator and optimizer.
-
-The user may write their image request in Arabic or any other language.
-
-Your job is to understand exactly what the user wants and convert it into a detailed, high-quality English prompt for an SDXL image generation model.
-
-IMPORTANT RULES:
-- Do NOT answer the user.
-- Do NOT explain anything.
-- Return ONLY the final English image-generation prompt.
-- Preserve the user's requested subject, objects, people, environment, clothing, colors, composition, camera angle, lighting, mood and style.
-- If the user requests Arabic text inside the image, preserve that text exactly and explicitly tell the image model that the text must appear in Arabic.
-- Do not add unrelated objects or ideas.
-- Improve the prompt with useful visual details when appropriate.
-- Make the prompt clear and optimized for SDXL.
-`
-                        },
-                        {
-                            role: 'user',
-                            content: message
-                        }
-                    ],
-
-                    temperature: 0.3
-                });
-
-            const translatedPrompt =
-                promptCompletion?.choices?.[0]?.message?.content?.trim();
-
-            if (!translatedPrompt) {
-                throw new Error(
-                    'فشل GPT-4o-mini في تجهيز الـ Prompt'
-                );
-            }
-
-            console.log(
-                'Optimized English prompt:',
-                translatedPrompt
-            );
-
-            // ------------------------------------------
-            // STEP 2: Generate Image with Replicate
-            // ------------------------------------------
-
             const output = await replicate.run(
-                'bytedance/sdxl-lightning-4step:6f7a773af6fc3e8de9d5a3c00be77c17308914bf67772726aff83496ba1e3bbe',
-                {
-                    input: {
-                        prompt: translatedPrompt,
-                        width: 1024,
-                        height: 1024,
-                        num_outputs: 1
-                    }
-                }
+                "bytedance/sdxl-lightning-4step:5599ed30703defd1d160a25a63321b4dec97101d98b4674bcc24237e78a67f35",
+                { input: { prompt: message, width: 1024, height: 1024, num_outputs: 1 } }
             );
-
-            console.log(
-                'Replicate output:',
-                output
-            );
-
-            // ------------------------------------------
-            // STEP 3: Extract Image URL
-            // ------------------------------------------
 
             let imageUrl = '';
-
-            if (
-                Array.isArray(output) &&
-                output.length > 0
-            ) {
-
+            if (Array.isArray(output) && output.length > 0) {
                 const first = output[0];
-
-                if (
-                    first &&
-                    typeof first === 'object' &&
-                    typeof first.url === 'function'
-                ) {
-                    imageUrl = first.url();
-                }
-
-                else if (
-                    first &&
-                    typeof first === 'object' &&
-                    typeof first.url === 'string'
-                ) {
-                    imageUrl = first.url;
-                }
-
-                else if (
-                    typeof first === 'string'
-                ) {
-                    imageUrl = first;
-                }
-            }
-
-            else if (
-                output &&
-                typeof output.url === 'function'
-            ) {
+                imageUrl = (typeof first === 'object' && first !== null && typeof first.url === 'function') 
+                    ? first.url() 
+                    : (first.url || String(first));
+            } else if (typeof output === 'string') {
+                imageUrl = output;
+            } else if (output && typeof output.url === 'function') {
                 imageUrl = output.url();
             }
 
-            else if (
-                typeof output === 'string'
-            ) {
-                imageUrl = output;
-            }
-
-            if (!imageUrl) {
-
-                console.error(
-                    'Could not extract image URL:',
-                    output
-                );
-
-                throw new Error(
-                    'فشل استخراج رابط الصورة من Replicate'
-                );
-            }
-
-            console.log(
-                'Generated image:',
-                imageUrl
-            );
-
-            return res.json({
-                reply: imageUrl,
-                isImage: true,
-                model: 'sdxl-lightning',
-                prompt: translatedPrompt
-            });
-
+            return res.json({ reply: imageUrl, isImage: true });
         } catch (imgError) {
-
-            console.error(
-                'Image Generation Error:',
-                imgError
-            );
-
-            return res.status(500).json({
-                error:
-                    imgError.message ||
-                    'فشل توليد الصورة'
-            });
+            console.error('Replicate Error:', imgError);
+            return res.status(500).json({ error: imgError.message || 'فشل توليد الصورة' });
         }
     }
 
-    // ==========================================
-    // 2. OPENAI TEXT MODELS
-    // ==========================================
-
+    // 2. المحادثات وتحليل الصور عبر OpenAI
     try {
-
         let targetModel = 'gpt-4o-mini';
+        if (model === 'gpt-4o') targetModel = 'gpt-4o';
+        if (model === 'o3-mini') targetModel = 'o3-mini';
+        if (model === 'o3') targetModel = 'o1';
 
-        if (model === 'gpt-4o') {
-            targetModel = 'gpt-4o';
-        }
+        let contentParts = [{ type: "text", text: message || "ما هذا؟" }];
 
-        if (model === 'gpt-4o-mini') {
-            targetModel = 'gpt-4o-mini';
-        }
-
-        if (model === 'o3-mini') {
-            targetModel = 'o3-mini';
-        }
-
-        if (model === 'o3') {
-            targetModel = 'o3';
-        }
-
-        console.log(
-            `OpenAI model: ${targetModel}`
-        );
-
-        const completion =
-            await openai.chat.completions.create({
-
-                model: targetModel,
-
-                messages: [
-                    {
-                        role: 'user',
-                        content: message
-                    }
-                ]
+        if (attachment && attachment.dataUrl) {
+            contentParts.push({
+                type: "image_url",
+                image_url: { url: attachment.dataUrl }
             });
-
-        const reply =
-            completion?.choices?.[0]?.message?.content;
-
-        if (!reply) {
-            throw new Error(
-                'OpenAI لم يرجع نصاً'
-            );
         }
 
-        return res.json({
-            reply: reply,
-            isImage: false,
-            model: targetModel
+        const completion = await openai.chat.completions.create({
+            model: targetModel,
+            messages: [{ role: 'user', content: contentParts }],
         });
 
+        return res.json({ reply: completion.choices[0].message.content, isImage: false });
     } catch (textError) {
-
-        console.error(
-            'OpenAI Error:',
-            textError
-        );
-
-        return res.status(500).json({
-            error:
-                textError.message ||
-                'فشل الاتصال بـ OpenAI'
-        });
+        console.error('OpenAI Error:', textError);
+        return res.status(500).json({ error: textError.message || 'فشل الاتصال بـ OpenAI' });
     }
 });
 
-// ==========================================
-// SERVER
-// ==========================================
-
 const PORT = process.env.PORT || 8080;
-
-app.listen(
-    PORT,
-    '0.0.0.0',
-    () => {
-        console.log(
-            `Server running on port ${PORT}`
-        );
-    }
-);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+});
