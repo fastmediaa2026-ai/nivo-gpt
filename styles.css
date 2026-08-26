@@ -1,0 +1,32 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4; /* خلفية الموقع */
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    background: white; /* خلفية اللوحة */
+    border-radius: 5px; /* زوايا مدورة */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* ظل خفيف */
+}
+
+#chatbox {
+    height: 400px;
+    overflow-y: scroll; /* تمرير عمودي */
+    border: 1px solid #ccc; /* حد خفيف */
+    padding: 10px;
+    background-color: #f9f9f9;
+    margin-bottom: 10px; /* مسافة أسفل صندوق الدردشة */
+}
+
+input {
+    width: calc(100% - 90px); /* عرض الحقل */
+    padding: 10px; /* حشوة */
+}
+
+button {
+    padding: 10px 15px; /* حشوة الزر */
+}
