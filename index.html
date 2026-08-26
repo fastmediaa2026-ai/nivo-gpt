@@ -24,7 +24,6 @@
         .app-layout {
             display: flex;
             height: 100vh;
-            height: 100dvh; /* تتكيف بدقة مع شاشات الموبايل الحديثة */
             width: 100vw;
             position: relative;
             overflow: hidden;
@@ -223,7 +222,6 @@
             cursor: pointer;
         }
 
-        /* صندوق الشات المرن الذي يأخذ المساحة المتبقية فقط */
         .chat-container {
             flex: 1;
             overflow-y: auto;
@@ -235,7 +233,7 @@
         }
 
         .welcome-screen {
-            margin-top: 12vh;
+            margin-top: 10vh;
             text-align: center;
             color: #1f2937;
         }
@@ -285,9 +283,9 @@
             padding-right: 0;
         }
 
-        /* شريط الإدخال الثابت أسفل الشاشة تماماً */
+        /* تعديل المسافة والارتفاع لرفع صندوق الكتابة فوق شريط الموبايل السفلي */
         .input-area-wrapper {
-            padding: 10px 16px 14px;
+            padding: 10px 16px 24px; /* زيادة المساحة السفلية لضمان الظهور */
             display: flex;
             justify-content: center;
             background: #ffffff;
@@ -460,7 +458,7 @@
                 <div class="messages-wrapper" id="messagesWrapper"></div>
             </div>
 
-            <!-- شريط الإدخال المثبت أسفل الشاشة -->
+            <!-- شريط الإدخال المرفوع خصيصاً ليظهر كاملاً فوق شريط الموبايل -->
             <div class="input-area-wrapper">
                 <div class="input-box-container">
                     
@@ -492,7 +490,7 @@
 
     <script>
         let currentChatId = Date.now().toString();
-        let chatsHistory = JSON.parse(localStorage.getItem('nivo_chats_v3') || '{}');
+        let chatsHistory = JSON.parse(localStorage.getItem('nivo_chats_v4') || '{}');
         let activeAttachment = null;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -565,7 +563,7 @@
         function deleteChat(event, id) {
             event.stopPropagation();
             delete chatsHistory[id];
-            localStorage.setItem('nivo_chats_v3', JSON.stringify(chatsHistory));
+            localStorage.setItem('nivo_chats_v4', JSON.stringify(chatsHistory));
             if (currentChatId === id) startNewChat();
             renderHistoryList();
         }
@@ -664,7 +662,7 @@
                 };
             }
             chatsHistory[currentChatId].messages.push(msgObj);
-            localStorage.setItem('nivo_chats_v3', JSON.stringify(chatsHistory));
+            localStorage.setItem('nivo_chats_v4', JSON.stringify(chatsHistory));
             renderHistoryList();
         }
     </script>
