@@ -417,6 +417,7 @@
             color: #1f2937;
         }
 
+        /* نافذة تفعيل الكود للعميل (خانتين: الهاتف + الكود) */
         .activation-modal {
             display: none;
             position: fixed;
@@ -432,26 +433,39 @@
         .activation-card {
             background: #ffffff;
             width: 100%;
-            max-width: 360px;
+            max-width: 380px;
             border-radius: 16px;
             padding: 24px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             text-align: center;
         }
 
-        .code-input {
+        .form-group-modal {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: right;
+            margin-bottom: 12px;
+        }
+
+        .form-group-modal label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .input-modal {
             width: 100%;
-            padding: 12px;
-            text-align: center;
-            font-size: 16px;
-            letter-spacing: 2px;
-            font-weight: bold;
-            border: 1.5px solid #10a37f;
+            padding: 10px 14px;
+            font-size: 14px;
+            border: 1.5px solid #d1d5db;
             border-radius: 8px;
-            margin: 16px 0;
             outline: none;
-            text-transform: uppercase;
-            background: #f9fafb;
+            color: #111827;
+        }
+
+        .input-modal:focus {
+            border-color: #10a37f;
         }
 
         .activate-btn {
@@ -464,6 +478,7 @@
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
+            margin-top: 6px;
         }
 
         /* ================== لوحة تحكم الأدمن ================== */
@@ -477,7 +492,7 @@
         }
 
         .admin-container {
-            max-width: 900px;
+            max-width: 960px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
@@ -547,6 +562,8 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 14px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .generate-btn {
@@ -620,9 +637,18 @@
             font-weight: 600;
         }
 
-        .badge-cancelled {
+        .badge-banned {
             background: rgba(239, 68, 68, 0.1);
             color: #ef4444;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+
+        .badge-refunded {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
             padding: 3px 8px;
             border-radius: 4px;
             font-size: 11.5px;
@@ -632,33 +658,33 @@
         .table-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         .btn-action-icon {
             border: none;
             background: none;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 14px;
             padding: 4px;
             border-radius: 4px;
-            transition: color 0.2s;
+            transition: transform 0.1s;
         }
 
-        .btn-cancel {
+        .btn-ban {
+            color: #dc2626;
+        }
+
+        .btn-refund {
             color: #f59e0b;
         }
 
-        .btn-cancel:hover {
-            color: #d97706;
+        .btn-del {
+            color: #6b7280;
         }
 
-        .btn-delete {
-            color: #ef4444;
-        }
-
-        .btn-delete:hover {
-            color: #b91c1c;
+        .btn-del:hover {
+            color: #111827;
         }
 
         @media (max-width: 768px) {
@@ -710,6 +736,7 @@
                         <span><i class="fa-solid fa-circle-check"></i> الاشتراك: نشط</span>
                         <span>30 يوم</span>
                     </div>
+                    <div class="user-status-sub" id="displayUserPhone">الهاتف: 01096056061</div>
                     <div class="user-status-sub" id="displayUserCode">الكود: NIVO-MASTER-2026</div>
                 </div>
 
@@ -791,7 +818,7 @@
             <div class="admin-top-bar">
                 <div>
                     <h2 style="font-size: 18px; color: #111827;">لوحة تحكم الأدمن (NIVO Admin)</h2>
-                    <p style="font-size: 12px; color: #6b7280; margin-top: 2px;">إدارة التراخيص والأكواد والاشتراكات</p>
+                    <p style="font-size: 12px; color: #6b7280; margin-top: 2px;">إدارة المشتركين، أرقام الهواتف، والتراخيص</p>
                 </div>
                 <button class="back-to-chat-btn" onclick="showUserChatView()">
                     <i class="fa-solid fa-comments"></i>
@@ -802,23 +829,23 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="stat-title">المشتركين النشطين</span>
-                    <span class="stat-number" id="activeSubsCount">1</span>
+                    <span class="stat-number" id="activeSubsCount">2</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-title">الأكواد الجاهزة للبيع</span>
-                    <span class="stat-number" id="availableCodesCount">2</span>
+                    <span class="stat-title">أكواد غير مفعلة</span>
+                    <span class="stat-number" id="availableCodesCount">1</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-title">استهلاك النماذج</span>
-                    <span class="stat-number">GPT-4o / Flux</span>
+                    <span class="stat-title">اشتراكات ملغية / محظورة</span>
+                    <span class="stat-number" id="blockedCount">0</span>
                 </div>
             </div>
 
             <div class="admin-card">
                 <div class="admin-card-header">
-                    <h3 style="font-size: 15px; color: #111827;">إدارة وتوليد أكواد التفعيل</h3>
-                    <button class="generate-btn" onclick="generateNewCode()">
-                        <i class="fa-solid fa-plus"></i> توليد كود جديد
+                    <h3 style="font-size: 15px; color: #111827;">سجل العملاء والتراخيص</h3>
+                    <button class="generate-btn" onclick="openGenerateModal()">
+                        <i class="fa-solid fa-user-plus"></i> إنشاء كود لعميل جديد
                     </button>
                 </div>
 
@@ -826,14 +853,16 @@
                     <table class="codes-table">
                         <thead>
                             <tr>
+                                <th>العميل / الهاتف</th>
                                 <th>كود الاشتراك</th>
                                 <th>المدة</th>
                                 <th>الحالة</th>
-                                <th>إلغاء / حذف</th>
+                                <th>إجراءات التحكم</th>
                             </tr>
                         </thead>
                         <tbody id="codesTableBody">
                             <tr>
+                                <td><span style="font-weight: 700; color: #111827;">أحمد (الرئيسي)</span><br><span style="font-size: 11px; color: #6b7280;">01096056061</span></td>
                                 <td>
                                     <div class="code-cell-wrapper">
                                         <span>NIVO-MASTER-2026</span>
@@ -845,6 +874,7 @@
                                 <td><i class="fa-solid fa-lock" style="color: #9ca3af;" title="حساب الأدمن محمي"></i></td>
                             </tr>
                             <tr>
+                                <td><span style="font-weight: 700; color: #111827;">عميل واتساب</span><br><span style="font-size: 11px; color: #6b7280;">01559740555</span></td>
                                 <td>
                                     <div class="code-cell-wrapper">
                                         <span>NIVO-78A1-99B2</span>
@@ -852,27 +882,12 @@
                                     </div>
                                 </td>
                                 <td>30 يوم</td>
-                                <td><span class="badge-unused">جاهز للإرسال</span></td>
+                                <td><span class="badge-active">نشط</span></td>
                                 <td>
                                     <div class="table-actions">
-                                        <button class="btn-action-icon btn-cancel" title="إيقاف / إلغاء الكود" onclick="toggleCancelCode(this)"><i class="fa-solid fa-ban"></i></button>
-                                        <button class="btn-action-icon btn-delete" title="حذف نهائي" onclick="deleteAdminCode(this)"><i class="fa-solid fa-trash"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="code-cell-wrapper">
-                                        <span>NIVO-AK5F-DW00</span>
-                                        <button class="copy-btn" onclick="copyCode(this, 'NIVO-AK5F-DW00')"><i class="fa-regular fa-copy"></i> نسخ</button>
-                                    </div>
-                                </td>
-                                <td>30 يوم</td>
-                                <td><span class="badge-unused">جاهز للإرسال</span></td>
-                                <td>
-                                    <div class="table-actions">
-                                        <button class="btn-action-icon btn-cancel" title="إيقاف / إلغاء الكود" onclick="toggleCancelCode(this)"><i class="fa-solid fa-ban"></i></button>
-                                        <button class="btn-action-icon btn-delete" title="حذف نهائي" onclick="deleteAdminCode(this)"><i class="fa-solid fa-trash"></i></button>
+                                        <button class="btn-action-icon btn-ban" title="حظر العميل فوراً" onclick="banCustomer(this)"><i class="fa-solid fa-ban"></i></button>
+                                        <button class="btn-action-icon btn-refund" title="إلغاء واسترجاع الفلوس" onclick="refundCustomer(this)"><i class="fa-solid fa-rotate-left"></i></button>
+                                        <button class="btn-action-icon btn-del" title="حذف نهائي" onclick="deleteCustomerRow(this)"><i class="fa-solid fa-trash"></i></button>
                                     </div>
                                 </td>
                             </tr>
@@ -883,17 +898,49 @@
         </div>
     </div>
 
-    <!-- نافذة تفعيل الكود للعميل -->
+    <!-- نافذة تفعيل الكود للعميل (خانتين) -->
     <div class="activation-modal" id="activationModal">
         <div class="activation-card">
             <img src="logo.png" alt="NIVO" style="width: 44px; height: 44px; border-radius: 8px; margin-bottom: 8px;" onerror="this.src='https://api.iconify.design/logos:openai-icon.svg'">
-            <h3 style="font-size: 17px; margin-bottom: 4px;">تفعيل الاشتراك</h3>
-            <p style="font-size: 12.5px; color: #6b7280;">أدخل كود الاشتراك لتفعيل الحساب لمدة شهر</p>
+            <h3 style="font-size: 17px; margin-bottom: 4px;">تسجيل الدخول والتفعيل</h3>
+            <p style="font-size: 12.5px; color: #6b7280; margin-bottom: 16px;">أدخل رقم هاتفك وكود الاشتراك لتفعيل الحساب</p>
 
-            <input type="text" class="code-input" id="activationInput" value="NIVO-MASTER-2026">
+            <div class="form-group-modal">
+                <label>رقم الهاتف</label>
+                <input type="text" class="input-modal" id="activationPhone" value="01096056061" placeholder="مثال: 01xxxxxxxxx">
+            </div>
+
+            <div class="form-group-modal">
+                <label>كود الاشتراك</label>
+                <input type="text" class="input-modal" id="activationInput" value="NIVO-MASTER-2026" placeholder="NIVO-XXXX-XXXX" style="letter-spacing: 1px; font-weight: bold; text-transform: uppercase;">
+            </div>
+
             <button class="activate-btn" onclick="handleActivationSubmit()">
-                <i class="fa-solid fa-bolt"></i> تفعيل وبدء الاستخدام فوراً
+                <i class="fa-solid fa-bolt"></i> تفعيل وبدء الاستخدام
             </button>
+        </div>
+    </div>
+
+    <!-- نافذة توليد كود لعميل جديد من لوحة الأدمن -->
+    <div class="activation-modal" id="newCustomerModal">
+        <div class="activation-card">
+            <h3 style="font-size: 16px; margin-bottom: 6px;">إنشاء اشتراك لعميل جديد</h3>
+            <p style="font-size: 12px; color: #6b7280; margin-bottom: 14px;">اكتب بيانات العميل لتوليد الكود</p>
+
+            <div class="form-group-modal">
+                <label>اسم العميل</label>
+                <input type="text" class="input-modal" id="newCustName" placeholder="مثال: محمد علي">
+            </div>
+
+            <div class="form-group-modal">
+                <label>رقم هاتف العميل</label>
+                <input type="text" class="input-modal" id="newCustPhone" placeholder="01xxxxxxxxx">
+            </div>
+
+            <button class="activate-btn" onclick="createCustomerCodeSubmit()">
+                <i class="fa-solid fa-plus"></i> توليد الكود وحفظه
+            </button>
+            <button class="action-link-btn" style="width:100%; margin-top:8px;" onclick="closeGenerateModal()">إلغاء</button>
         </div>
     </div>
 
@@ -904,8 +951,13 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const savedCode = localStorage.getItem('nivo_user_code') || 'NIVO-MASTER-2026';
+            const savedPhone = localStorage.getItem('nivo_user_phone') || '01096056061';
+            
             localStorage.setItem('nivo_user_code', savedCode);
+            localStorage.setItem('nivo_user_phone', savedPhone);
+
             document.getElementById('displayUserCode').innerText = 'الكود: ' + savedCode;
+            document.getElementById('displayUserPhone').innerText = 'الهاتف: ' + savedPhone;
             
             renderHistoryList();
             loadChat(currentChatId);
@@ -934,12 +986,25 @@
             });
         }
 
-        function generateNewCode() {
+        function openGenerateModal() {
+            document.getElementById('newCustomerModal').style.display = 'flex';
+        }
+
+        function closeGenerateModal() {
+            document.getElementById('newCustomerModal').style.display = 'none';
+        }
+
+        function createCustomerCodeSubmit() {
+            const name = document.getElementById('newCustName').value.trim() || 'عميل جديد';
+            const phone = document.getElementById('newCustPhone').value.trim() || 'غير مسجل';
+
             const rand = Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
             const newCode = 'NIVO-' + rand;
+
             const tbody = document.getElementById('codesTableBody');
             const tr = document.createElement('tr');
             tr.innerHTML = `
+                <td><span style="font-weight: 700; color: #111827;">${name}</span><br><span style="font-size: 11px; color: #6b7280;">${phone}</span></td>
                 <td>
                     <div class="code-cell-wrapper">
                         <span>${newCode}</span>
@@ -950,54 +1015,66 @@
                 <td><span class="badge-unused">جاهز للإرسال</span></td>
                 <td>
                     <div class="table-actions">
-                        <button class="btn-action-icon btn-cancel" title="إيقاف / إلغاء الكود" onclick="toggleCancelCode(this)"><i class="fa-solid fa-ban"></i></button>
-                        <button class="btn-action-icon btn-delete" title="حذف نهائي" onclick="deleteAdminCode(this)"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn-action-icon btn-ban" title="حظر العميل فوراً" onclick="banCustomer(this)"><i class="fa-solid fa-ban"></i></button>
+                        <button class="btn-action-icon btn-refund" title="إلغاء واسترجاع الفلوس" onclick="refundCustomer(this)"><i class="fa-solid fa-rotate-left"></i></button>
+                        <button class="btn-action-icon btn-del" title="حذف نهائي" onclick="deleteCustomerRow(this)"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </td>
             `;
             tbody.appendChild(tr);
+            
+            document.getElementById('newCustName').value = '';
+            document.getElementById('newCustPhone').value = '';
+            closeGenerateModal();
             updateDashboardCounts();
         }
 
-        function toggleCancelCode(btn) {
+        /* 1. زر حظر العميل */
+        function banCustomer(btn) {
             const row = btn.closest('tr');
-            const statusCell = row.querySelector('td:nth-child(3)');
-            const badge = statusCell.querySelector('span');
-
-            if (badge.classList.contains('badge-cancelled')) {
-                badge.className = 'badge-unused';
-                badge.innerText = 'جاهز للإرسال';
-                btn.innerHTML = '<i class="fa-solid fa-ban"></i>';
-                btn.title = 'إيقاف / إلغاء الكود';
-            } else {
-                badge.className = 'badge-cancelled';
-                badge.innerText = 'ملغي / محظور';
-                btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i>';
-                btn.title = 'إعادة تفعيل الكود';
-            }
+            const statusCell = row.querySelector('td:nth-child(4)');
+            statusCell.innerHTML = '<span class="badge-banned">محظور 🚫</span>';
             updateDashboardCounts();
         }
 
-        function deleteAdminCode(btn) {
+        /* 2. زر إلغاء واسترجاع الفلوس */
+        function refundCustomer(btn) {
+            const row = btn.closest('tr');
+            const statusCell = row.querySelector('td:nth-child(4)');
+            statusCell.innerHTML = '<span class="badge-refunded">ملغي ومسترجع ↩️</span>';
+            updateDashboardCounts();
+        }
+
+        /* 3. زر الحذف النهائي */
+        function deleteCustomerRow(btn) {
             btn.closest('tr').remove();
             updateDashboardCounts();
         }
 
         function updateDashboardCounts() {
-            const unusedCount = document.querySelectorAll('.badge-unused').length;
             const activeCount = document.querySelectorAll('.badge-active').length;
-            
-            const availEl = document.getElementById('availableCodesCount');
+            const unusedCount = document.querySelectorAll('.badge-unused').length;
+            const blockedCount = document.querySelectorAll('.badge-banned, .badge-refunded').length;
+
             const activeEl = document.getElementById('activeSubsCount');
-            
-            if (availEl) availEl.innerText = unusedCount;
+            const availEl = document.getElementById('availableCodesCount');
+            const blockEl = document.getElementById('blockedCount');
+
             if (activeEl) activeEl.innerText = activeCount;
+            if (availEl) availEl.innerText = unusedCount;
+            if (blockEl) blockEl.innerText = blockedCount;
         }
 
         function handleActivationSubmit() {
+            const phone = document.getElementById('activationPhone').value.trim() || '01096056061';
             const val = document.getElementById('activationInput').value.trim() || 'NIVO-MASTER-2026';
+
+            localStorage.setItem('nivo_user_phone', phone);
             localStorage.setItem('nivo_user_code', val);
+
+            document.getElementById('displayUserPhone').innerText = 'الهاتف: ' + phone;
             document.getElementById('displayUserCode').innerText = 'الكود: ' + val;
+
             document.getElementById('activationModal').style.display = 'none';
         }
 
