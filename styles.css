@@ -6,8 +6,8 @@
 }
 
 body {
-    background-color: #212121;
-    color: #ececec;
+    background-color: #ffffff; /* الخلفية البيضاء الأساسية */
+    color: #374151; /* لون النص الغامق للوضوح */
     height: 100vh;
     overflow: hidden;
 }
@@ -19,14 +19,14 @@ body {
     width: 100vw;
 }
 
-/* 2. القائمة الجانبية */
+/* 2. القائمة الجانبية (اجعلناها فاتحة بدرجة بسيطة للتمييز) */
 .sidebar {
     width: 260px;
-    background-color: #171717;
+    background-color: #f9fafb; /* لون خلفية القائمة الجانبية */
     display: flex;
     flex-direction: column;
     padding: 12px;
-    border-left: 1px solid #303030;
+    border-left: 1px solid #e5e7eb;
     transition: all 0.3s ease;
 }
 
@@ -37,8 +37,8 @@ body {
     width: 100%;
     padding: 10px 14px;
     background-color: transparent;
-    color: #ececec;
-    border: 1px solid #424242;
+    color: #374151; /* نص الزر */
+    border: 1px solid #d1d5db; /* حافة الزر */
     border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
@@ -47,7 +47,7 @@ body {
 }
 
 .new-chat-btn:hover {
-    background-color: #2f2f2f;
+    background-color: #f3f4f6; /* تفاعل الماوس */
 }
 
 .chat-history {
@@ -58,7 +58,7 @@ body {
 
 .history-label {
     font-size: 12px;
-    color: #8e8e8e;
+    color: #6b7280; /* لون الملصق */
     padding: 6px 10px;
     margin-bottom: 4px;
 }
@@ -69,7 +69,7 @@ body {
     justify-content: space-between;
     padding: 10px;
     border-radius: 8px;
-    color: #d1d1d1;
+    color: #374151; /* لون عناصر السجل */
     font-size: 13px;
     cursor: pointer;
     margin-bottom: 2px;
@@ -79,12 +79,12 @@ body {
 }
 
 .history-item:hover {
-    background-color: #212121;
+    background-color: #f3f4f6;
 }
 
 .sidebar-footer {
     padding-top: 12px;
-    border-top: 1px solid #303030;
+    border-top: 1px solid #e5e7eb;
 }
 
 .admin-badge {
@@ -92,9 +92,9 @@ body {
     align-items: center;
     gap: 8px;
     font-size: 12px;
-    color: #10a37f;
+    color: #16a34a; /* لون أخضر داكن للعنوان في الوضع الفاتح */
     padding: 8px;
-    background: rgba(16, 163, 127, 0.1);
+    background: rgba(22, 163, 74, 0.05); /* خلفية خضراء خفيفة جداً */
     border-radius: 6px;
 }
 
@@ -104,7 +104,7 @@ body {
     display: flex;
     flex-direction: column;
     position: relative;
-    background-color: #212121;
+    background-color: #ffffff; /* شاشة الشات البيضاء */
 }
 
 .top-header {
@@ -113,21 +113,21 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 0 24px;
-    border-bottom: 1px solid #2f2f2f;
+    border-bottom: 1px solid #f3f4f6;
 }
 
 .logo-text {
     font-weight: 700;
     letter-spacing: 1px;
     font-size: 16px;
-    color: #ececec;
+    color: #1f2937; /* لون اللوجو */
     margin-left: 12px;
 }
 
 .model-dropdown {
-    background-color: #2f2f2f;
-    color: #ececec;
-    border: 1px solid #424242;
+    background-color: #ffffff; /* حقل اختيار الموديل أبيض */
+    color: #1f2937; /* نص الموديل داكن */
+    border: 1px solid #d1d5db;
     padding: 6px 12px;
     border-radius: 6px;
     font-size: 13px;
@@ -147,12 +147,12 @@ body {
 .welcome-screen {
     margin-top: 15vh;
     text-align: center;
-    color: #ececec;
+    color: #1f2937; /* نص ترحيب داكن */
 }
 
 .welcome-icon {
     font-size: 32px;
-    color: #10a37f;
+    color: #10a37f; /* اللون الأخضر المميز */
     margin-bottom: 16px;
 }
 
@@ -184,14 +184,14 @@ body {
 }
 
 .message-row.user .message-bubble {
-    background-color: #2f2f2f;
-    color: #fff;
+    background-color: #f3f4f6; /* فقاعة المستخدم رمادي فاتح جداً */
+    color: #1f2937; /* نص مستخدم داكن */
     border-top-right-radius: 4px;
 }
 
 .message-row.assistant .message-bubble {
-    background-color: transparent;
-    color: #ececec;
+    background-color: transparent; /* خلفية شفافة لرد المساعد */
+    color: #374151; /* نص مساعد داكن */
     padding-right: 0;
 }
 
@@ -200,17 +200,17 @@ body {
     padding: 16px 24px 24px;
     display: flex;
     justify-content: center;
-    background: linear-gradient(180deg, rgba(33,33,33,0) 0%, #212121 40%);
+    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #ffffff 40%); /* تدرج خلفية أبيض */
 }
 
 .input-box-container {
     width: 100%;
     max-width: 768px;
-    background-color: #2f2f2f;
+    background-color: #ffffff; /* شريط إدخال أبيض */
     border-radius: 24px;
     padding: 8px 12px;
-    border: 1px solid #424242;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 1px solid #d1d5db; /* حافة رمادية فاتحة */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* ظل خفيف جداً */
     display: flex;
     flex-direction: column;
 }
@@ -219,7 +219,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: #383838;
+    background-color: #f3f4f6; /* معاينة الملف خلفية رمادية فاتحة */
     padding: 6px 12px;
     border-radius: 8px;
     margin-bottom: 8px;
@@ -230,18 +230,18 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #ececec;
+    color: #374151; /* نص الملف داكن */
 }
 
 .remove-file-btn {
     background: none;
     border: none;
-    color: #aaa;
+    color: #9ca3af; /* أيقونة الحذف رمادي */
     cursor: pointer;
 }
 
 .remove-file-btn:hover {
-    color: #fff;
+    color: #ef4444; /* تحول للأحمر عند التحويم */
 }
 
 .input-row {
@@ -255,7 +255,7 @@ textarea#userInput {
     background: transparent;
     border: none;
     outline: none;
-    color: #ececec;
+    color: #1f2937; /* نص مدخلات داكن */
     font-size: 15px;
     resize: none;
     max-height: 200px;
@@ -264,10 +264,15 @@ textarea#userInput {
     padding: 4px 0;
 }
 
+/* تعديل لون نص placeholder لحقل الإدخال في الوضع الفاتح */
+textarea#userInput::placeholder {
+    color: #9ca3af;
+}
+
 .icon-btn {
     background: transparent;
     border: none;
-    color: #b4b4b4;
+    color: #6b7280; /* أيقونات شريط الإدخال رمادي */
     cursor: pointer;
     width: 34px;
     height: 34px;
@@ -280,16 +285,16 @@ textarea#userInput {
 }
 
 .icon-btn:hover {
-    background-color: #424242;
-    color: #fff;
+    background-color: #f3f4f6; /* خلفية عند التحويم */
+    color: #1f2937; /* لون أيقونة أغمق */
 }
 
+/* زر الإرسال - جعلناه مميزاً بأيقونة داكنة في الوضع الفاتح */
 .send-btn {
-    background-color: #ececec;
-    color: #171717;
+    background-color: #f3f4f6; /* خلفية زر الإرسال */
+    color: #1f2937; /* لون أيقونة الإرسال */
 }
 
 .send-btn:hover {
-    background-color: #fff;
-    color: #000;
+    background-color: #e5e7eb;
 }
