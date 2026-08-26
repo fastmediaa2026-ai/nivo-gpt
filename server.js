@@ -17,14 +17,17 @@ app.get('/', (req, res) => {
 app.post('/api/chat', async (req, res) => {
     const { message, model } = req.body;
 
-    // 1. توليد الصور عبر Replicate (اسم الموديل المباشر بدون هاش)
+    // 1. توليد الصور باستخدام المعرف الرسمي (Hash) لنموذج SDXL Lightning
     if (model === 'sdxl-lightning') {
         try {
             const output = await replicate.run(
-                "bytedance/sdxl-lightning-4step",
+                "bytedance/sdxl-lightning-4step:5599ed30703defd1d160a25a63321b4dec97101d98b4674bcc24237e78a67f35",
                 {
                     input: {
-                        prompt: message
+                        prompt: message,
+                        width: 1024,
+                        height: 1024,
+                        num_outputs: 1
                     }
                 }
             );
@@ -32,7 +35,9 @@ app.post('/api/chat', async (req, res) => {
             let imageUrl = '';
             if (Array.isArray(output) && output.length > 0) {
                 const first = output[0];
-                imageUrl = (typeof first === 'object' && first.url) ? (typeof first.url === 'function' ? first.url() : first.url) : String(first);
+                imageUrl = (typeof first === 'object' && first !== null && typeof first.url === 'function') 
+                    ? first.url() 
+                    : (first.url || String(first));
             } else if (typeof output === 'string') {
                 imageUrl = output;
             } else if (output && typeof output.url === 'function') {
@@ -40,13 +45,13 @@ app.post('/api/chat', async (req, res) => {
             }
 
             if (!imageUrl) {
-                throw new Error('لم يتم استلام رابط صورة صالح من Replicate');
+                throw new Error('فشل استخراج رابط الصورة من استجابة Replicate');
             }
 
             return res.json({ reply: imageUrl, isImage: true });
         } catch (imgError) {
             console.error('Replicate Error:', imgError);
-            return res.status(500).json({ error: imgError.message || 'فشل توليد الصورة من Replicate' });
+            return res.status(500).json({ error: imgError.message || 'فشل توليد الصورة' });
         }
     }
 
