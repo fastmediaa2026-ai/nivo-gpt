@@ -5,7 +5,7 @@ const Replicate = require('replicate');
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json());
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
@@ -15,11 +15,11 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api/chat', async (req, res) => {
-    const { message, model, attachment } = req.body;
+    try {
+        const { message, model } = req.body;
 
-    // 1. توليد الصور عبر Replicate بالنسخة الصحيحة
-    if (model === 'sdxl-lightning') {
-        try {
+        // 1. توليد الصور عبر Replicate
+        if (model === 'sdxl-lightning') {
             const output = await replicate.run(
                 "bytedance/sdxl-lightning-4step:5599ed30703defd1d160a25a63321b4dec97101d98b4674bcc24237e78a67f35",
                 {
@@ -31,48 +31,25 @@ app.post('/api/chat', async (req, res) => {
                     }
                 }
             );
-
-            let imageUrl = '';
-            if (Array.isArray(output) && output.length > 0) {
-                imageUrl = typeof output[0] === 'string' ? output[0] : (output[0].url ? output[0].url() : String(output[0]));
-            } else if (typeof output === 'string') {
-                imageUrl = output;
-            } else if (output && typeof output.url === 'function') {
-                imageUrl = output.url();
-            }
-
+            const imageUrl = Array.isArray(output) ? output[0] : output;
             return res.json({ reply: imageUrl, isImage: true });
-        } catch (imgError) {
-            console.error('Replicate Error:', imgError);
-            return res.status(500).json({ error: imgError.message || 'فشل توليد الصورة' });
         }
-    }
 
-    // 2. المحادثات وتحليل الصور المرفوعة عبر OpenAI
-    try {
+        // 2. توجيه الموديلات النصية لأسماء الـ API الرسمية
         let targetModel = 'gpt-4o-mini';
         if (model === 'gpt-4o') targetModel = 'gpt-4o';
         if (model === 'o3-mini') targetModel = 'o3-mini';
         if (model === 'o3') targetModel = 'o1';
 
-        let contentParts = [{ type: "text", text: message || "ما هذا؟" }];
-
-        if (attachment && attachment.dataUrl) {
-            contentParts.push({
-                type: "image_url",
-                image_url: { url: attachment.dataUrl }
-            });
-        }
-
         const completion = await openai.chat.completions.create({
             model: targetModel,
-            messages: [{ role: 'user', content: contentParts }],
+            messages: [{ role: 'user', content: message }],
         });
 
-        return res.json({ reply: completion.choices[0].message.content, isImage: false });
-    } catch (textError) {
-        console.error('OpenAI Error:', textError);
-        return res.status(500).json({ error: textError.message || 'فشل الاتصال بـ OpenAI' });
+        res.json({ reply: completion.choices[0].message.content, isImage: false });
+    } catch (error) {
+        console.error('API Error:', error);
+        res.status(500).json({ error: 'حدث خطأ أثناء الاتصال بالنموذج المحدد.' });
     }
 });
 
