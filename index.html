@@ -466,7 +466,7 @@
             cursor: pointer;
         }
 
-        /* ================== شاشة لوحة تحكم الأدمن ================== */
+        /* ================== لوحة تحكم الأدمن ================== */
         #adminDashboardView {
             display: none;
             height: 100%;
@@ -620,6 +620,47 @@
             font-weight: 600;
         }
 
+        .badge-cancelled {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+
+        .table-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-action-icon {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+
+        .btn-cancel {
+            color: #f59e0b;
+        }
+
+        .btn-cancel:hover {
+            color: #d97706;
+        }
+
+        .btn-delete {
+            color: #ef4444;
+        }
+
+        .btn-delete:hover {
+            color: #b91c1c;
+        }
+
         @media (max-width: 768px) {
             .menu-toggle-btn {
                 display: block;
@@ -761,7 +802,7 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="stat-title">المشتركين النشطين</span>
-                    <span class="stat-number">1</span>
+                    <span class="stat-number" id="activeSubsCount">1</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-title">الأكواد الجاهزة للبيع</span>
@@ -788,7 +829,7 @@
                                 <th>كود الاشتراك</th>
                                 <th>المدة</th>
                                 <th>الحالة</th>
-                                <th>الإجراء</th>
+                                <th>إلغاء / حذف</th>
                             </tr>
                         </thead>
                         <tbody id="codesTableBody">
@@ -801,7 +842,7 @@
                                 </td>
                                 <td>مفتوح (أدمن)</td>
                                 <td><span class="badge-active">نشط دائم</span></td>
-                                <td><i class="fa-solid fa-lock" style="color: #9ca3af;"></i></td>
+                                <td><i class="fa-solid fa-lock" style="color: #9ca3af;" title="حساب الأدمن محمي"></i></td>
                             </tr>
                             <tr>
                                 <td>
@@ -812,7 +853,12 @@
                                 </td>
                                 <td>30 يوم</td>
                                 <td><span class="badge-unused">جاهز للإرسال</span></td>
-                                <td><button style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="deleteAdminCode(this)"><i class="fa-solid fa-trash"></i></button></td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button class="btn-action-icon btn-cancel" title="إيقاف / إلغاء الكود" onclick="toggleCancelCode(this)"><i class="fa-solid fa-ban"></i></button>
+                                        <button class="btn-action-icon btn-delete" title="حذف نهائي" onclick="deleteAdminCode(this)"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                </td>
                             </tr>
                             <tr>
                                 <td>
@@ -823,7 +869,12 @@
                                 </td>
                                 <td>30 يوم</td>
                                 <td><span class="badge-unused">جاهز للإرسال</span></td>
-                                <td><button style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="deleteAdminCode(this)"><i class="fa-solid fa-trash"></i></button></td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button class="btn-action-icon btn-cancel" title="إيقاف / إلغاء الكود" onclick="toggleCancelCode(this)"><i class="fa-solid fa-ban"></i></button>
+                                        <button class="btn-action-icon btn-delete" title="حذف نهائي" onclick="deleteAdminCode(this)"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -858,6 +909,7 @@
             
             renderHistoryList();
             loadChat(currentChatId);
+            updateDashboardCounts();
         });
 
         function showAdminView() {
@@ -896,21 +948,50 @@
                 </td>
                 <td>30 يوم</td>
                 <td><span class="badge-unused">جاهز للإرسال</span></td>
-                <td><button style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="deleteAdminCode(this)"><i class="fa-solid fa-trash"></i></button></td>
+                <td>
+                    <div class="table-actions">
+                        <button class="btn-action-icon btn-cancel" title="إيقاف / إلغاء الكود" onclick="toggleCancelCode(this)"><i class="fa-solid fa-ban"></i></button>
+                        <button class="btn-action-icon btn-delete" title="حذف نهائي" onclick="deleteAdminCode(this)"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </td>
             `;
             tbody.appendChild(tr);
-            updateAvailableCount();
+            updateDashboardCounts();
+        }
+
+        function toggleCancelCode(btn) {
+            const row = btn.closest('tr');
+            const statusCell = row.querySelector('td:nth-child(3)');
+            const badge = statusCell.querySelector('span');
+
+            if (badge.classList.contains('badge-cancelled')) {
+                badge.className = 'badge-unused';
+                badge.innerText = 'جاهز للإرسال';
+                btn.innerHTML = '<i class="fa-solid fa-ban"></i>';
+                btn.title = 'إيقاف / إلغاء الكود';
+            } else {
+                badge.className = 'badge-cancelled';
+                badge.innerText = 'ملغي / محظور';
+                btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i>';
+                btn.title = 'إعادة تفعيل الكود';
+            }
+            updateDashboardCounts();
         }
 
         function deleteAdminCode(btn) {
             btn.closest('tr').remove();
-            updateAvailableCount();
+            updateDashboardCounts();
         }
 
-        function updateAvailableCount() {
+        function updateDashboardCounts() {
             const unusedCount = document.querySelectorAll('.badge-unused').length;
-            const el = document.getElementById('availableCodesCount');
-            if (el) el.innerText = unusedCount;
+            const activeCount = document.querySelectorAll('.badge-active').length;
+            
+            const availEl = document.getElementById('availableCodesCount');
+            const activeEl = document.getElementById('activeSubsCount');
+            
+            if (availEl) availEl.innerText = unusedCount;
+            if (activeEl) activeEl.innerText = activeCount;
         }
 
         function handleActivationSubmit() {
