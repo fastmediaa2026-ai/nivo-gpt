@@ -120,11 +120,11 @@
         }
 
         .sidebar-footer {
-            padding-top: 12px;
+            padding-top: 10px;
             border-top: 1px solid #e5e7eb;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .user-status-card {
@@ -175,6 +175,12 @@
 
         .admin-switch-btn:hover {
             background: #1f2937;
+        }
+
+        .master-admin-btn {
+            background: rgba(16, 163, 127, 0.12);
+            color: #10a37f;
+            border: 1px solid #10a37f;
         }
 
         .sidebar-overlay {
@@ -417,7 +423,6 @@
             color: #1f2937;
         }
 
-        /* نافذة تفعيل الكود للعميل */
         .activation-modal {
             display: none;
             position: fixed;
@@ -623,12 +628,6 @@
             border-radius: 6px;
             font-size: 11px;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .copy-btn:hover {
-            background: #e5e7eb;
-            color: #111827;
         }
 
         .copy-btn.copied {
@@ -688,43 +687,21 @@
             border-radius: 4px;
         }
 
-        .btn-ban {
-            color: #dc2626;
-        }
-
-        .btn-refund {
-            color: #f59e0b;
-        }
-
-        .btn-del {
-            color: #6b7280;
-        }
-
-        .btn-del:hover {
-            color: #111827;
-        }
+        .btn-ban { color: #dc2626; }
+        .btn-refund { color: #f59e0b; }
+        .btn-del { color: #6b7280; }
+        .btn-del:hover { color: #ef4444; }
 
         @media (max-width: 768px) {
-            .menu-toggle-btn {
-                display: block;
-            }
-
+            .menu-toggle-btn { display: block; }
             .sidebar {
                 position: fixed;
-                top: 0;
-                right: 0;
-                bottom: 0;
+                top: 0; right: 0; bottom: 0;
                 transform: translateX(100%);
                 box-shadow: -4px 0 16px rgba(0,0,0,0.1);
             }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .sidebar-overlay.active {
-                display: block;
-            }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-overlay.active { display: block; }
         }
     </style>
 </head>
@@ -757,8 +734,13 @@
                     <div class="user-status-sub" id="displayUserCode">الكود: NIVO-MASTER-2026</div>
                 </div>
 
+                <!-- زر دخول الأدمن المباشر الدائم -->
+                <button class="action-link-btn master-admin-btn" onclick="activateMasterAdmin(); closeSidebarOnMobile();">
+                    <i class="fa-solid fa-crown"></i> دخول كأدمن دائم (Master Admin)
+                </button>
+
                 <button class="action-link-btn" onclick="reopenActivationScreen(); closeSidebarOnMobile();">
-                    <i class="fa-solid fa-key"></i> تجربة إدخال كود جديد
+                    <i class="fa-solid fa-key"></i> تجربة إدخال كود عميل
                 </button>
 
                 <button class="action-link-btn admin-switch-btn" onclick="showAdminView(); closeSidebarOnMobile();">
@@ -829,7 +811,7 @@
         </main>
     </div>
 
-    <!-- 2. شاشة لوحة تحكم الأدمن -->
+    <!-- 2. لوحة تحكم الأدمن -->
     <div id="adminDashboardView">
         <div class="admin-container">
             <div class="admin-top-bar">
@@ -846,7 +828,7 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="stat-title">المشتركين النشطين</span>
-                    <span class="stat-number" id="activeSubsCount">2</span>
+                    <span class="stat-number" id="activeSubsCount">1</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-title">أكواد غير مفعلة</span>
@@ -878,36 +860,7 @@
                             </tr>
                         </thead>
                         <tbody id="codesTableBody">
-                            <tr data-code="NIVO-MASTER-2026">
-                                <td><span style="font-weight: 700; color: #111827;">أحمد (الرئيسي)</span><br><span style="font-size: 11px; color: #6b7280;">01096056061</span></td>
-                                <td>
-                                    <div class="code-cell-wrapper">
-                                        <span>NIVO-MASTER-2026</span>
-                                        <button class="copy-btn" onclick="copyCode(this, 'NIVO-MASTER-2026')"><i class="fa-regular fa-copy"></i> نسخ</button>
-                                    </div>
-                                </td>
-                                <td>مفتوح (أدمن)</td>
-                                <td><span class="badge-active">نشط دائم</span></td>
-                                <td><i class="fa-solid fa-shield" style="color: #10a37f;" title="حساب الأدمن محمي دائم"></i></td>
-                            </tr>
-                            <tr data-code="NIVO-78A1-99B2">
-                                <td><span style="font-weight: 700; color: #111827;">عميل تجريبي</span><br><span style="font-size: 11px; color: #6b7280;">01559740555</span></td>
-                                <td>
-                                    <div class="code-cell-wrapper">
-                                        <span>NIVO-78A1-99B2</span>
-                                        <button class="copy-btn" onclick="copyCode(this, 'NIVO-78A1-99B2')"><i class="fa-regular fa-copy"></i> نسخ</button>
-                                    </div>
-                                </td>
-                                <td>30 يوم</td>
-                                <td><span class="badge-active">نشط</span></td>
-                                <td>
-                                    <div class="table-actions">
-                                        <button class="btn-action-icon btn-ban" title="حظر العميل فوراً" onclick="banCustomer(this, 'NIVO-78A1-99B2')"><i class="fa-solid fa-ban"></i></button>
-                                        <button class="btn-action-icon btn-refund" title="إلغاء واسترجاع الفلوس" onclick="refundCustomer(this, 'NIVO-78A1-99B2')"><i class="fa-solid fa-rotate-left"></i></button>
-                                        <button class="btn-action-icon btn-del" title="حذف نهائي" onclick="deleteCustomerRow(this, 'NIVO-78A1-99B2')"><i class="fa-solid fa-trash"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
+                            <!-- جدول ديناميكي محفوظ في الذاكرة -->
                         </tbody>
                     </table>
                 </div>
@@ -915,26 +868,22 @@
         </div>
     </div>
 
-    <!-- نافذة تفعيل الكود للعميل (مع زر الإغلاق والعودة) -->
+    <!-- نافذة تفعيل الكود للعميل -->
     <div class="activation-modal" id="activationModal">
         <div class="activation-card">
-            <!-- زر الإغلاق والعودة للشات -->
-            <button class="close-modal-x" onclick="closeActivationModal()" title="إغلاق والعودة">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
+            <button class="close-modal-x" onclick="closeActivationModal()" title="إغلاق والعودة"><i class="fa-solid fa-xmark"></i></button>
             <img src="logo.png" alt="NIVO" style="width: 44px; height: 44px; border-radius: 8px; margin-bottom: 8px;" onerror="this.src='https://api.iconify.design/logos:openai-icon.svg'">
             <h3 style="font-size: 17px; margin-bottom: 4px;">تسجيل الدخول والتفعيل</h3>
             <p style="font-size: 12.5px; color: #6b7280; margin-bottom: 16px;">أدخل رقم هاتفك وكود الاشتراك لتفعيل الحساب</p>
 
             <div class="form-group-modal">
                 <label>رقم الهاتف</label>
-                <input type="text" class="input-modal" id="activationPhone" value="01096056061" placeholder="مثال: 01xxxxxxxxx">
+                <input type="text" class="input-modal" id="activationPhone" placeholder="مثال: 01xxxxxxxxx">
             </div>
 
             <div class="form-group-modal">
                 <label>كود الاشتراك</label>
-                <input type="text" class="input-modal" id="activationInput" value="NIVO-MASTER-2026" placeholder="NIVO-XXXX-XXXX" style="letter-spacing: 1px; font-weight: bold; text-transform: uppercase;">
+                <input type="text" class="input-modal" id="activationInput" placeholder="NIVO-XXXX-XXXX" style="letter-spacing: 1px; font-weight: bold; text-transform: uppercase;">
             </div>
 
             <button class="activate-btn" onclick="handleActivationSubmit()">
@@ -943,13 +892,10 @@
         </div>
     </div>
 
-    <!-- نافذة توليد كود لعميل جديد من لوحة الأدمن -->
+    <!-- نافذة إنشاء كود لعميل جديد -->
     <div class="activation-modal" id="newCustomerModal">
         <div class="activation-card">
-            <button class="close-modal-x" onclick="closeGenerateModal()" title="إغلاق">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
+            <button class="close-modal-x" onclick="closeGenerateModal()" title="إغلاق"><i class="fa-solid fa-xmark"></i></button>
             <h3 style="font-size: 16px; margin-bottom: 6px;">إنشاء اشتراك لعميل جديد</h3>
             <p style="font-size: 12px; color: #6b7280; margin-bottom: 14px;">اكتب بيانات العميل لتوليد الكود</p>
 
@@ -973,7 +919,14 @@
         let currentChatId = Date.now().toString();
         let chatsHistory = JSON.parse(localStorage.getItem('nivo_chats_fixed') || '{}');
         let activeAttachment = null;
-        let blockedCodes = JSON.parse(localStorage.getItem('nivo_blocked_codes') || '[]');
+
+        // قاعدة بيانات العملاء المخزنة في المتصفح
+        let defaultCustomers = [
+            { id: '1', name: 'أحمد (الرئيسي)', phone: '01096056061', code: 'NIVO-MASTER-2026', duration: 'مفتوح (أدمن)', status: 'admin' },
+            { id: '2', name: 'عميل تجريبي', phone: '01559740555', code: 'NIVO-78A1-99B2', duration: '30 يوم', status: 'active' }
+        ];
+
+        let customersList = JSON.parse(localStorage.getItem('nivo_customers_list') || JSON.stringify(defaultCustomers));
 
         document.addEventListener('DOMContentLoaded', () => {
             const savedCode = localStorage.getItem('nivo_user_code') || 'NIVO-MASTER-2026';
@@ -983,14 +936,19 @@
             localStorage.setItem('nivo_user_phone', savedPhone);
 
             checkUserStatusDisplay(savedCode, savedPhone);
-            
+            renderCustomersTable();
             renderHistoryList();
             loadChat(currentChatId);
-            updateDashboardCounts();
         });
 
+        function activateMasterAdmin() {
+            localStorage.setItem('nivo_user_code', 'NIVO-MASTER-2026');
+            localStorage.setItem('nivo_user_phone', '01096056061');
+            checkUserStatusDisplay('NIVO-MASTER-2026', '01096056061');
+            alert('تم الدخول كأدمن رئيسي دائم (Master Admin) بنجاح!');
+        }
+
         function checkUserStatusDisplay(code, phone) {
-            const isBlocked = blockedCodes.includes(code);
             const statusTextEl = document.getElementById('userStatusText');
             const codeEl = document.getElementById('displayUserCode');
             const phoneEl = document.getElementById('displayUserPhone');
@@ -998,11 +956,126 @@
             phoneEl.innerText = 'الهاتف: ' + phone;
             codeEl.innerText = 'الكود: ' + code;
 
-            if (isBlocked && code !== 'NIVO-MASTER-2026') {
+            const cust = customersList.find(c => c.code === code);
+            if (cust && (cust.status === 'banned' || cust.status === 'refunded') && code !== 'NIVO-MASTER-2026') {
                 statusTextEl.innerHTML = '<i class="fa-solid fa-ban" style="color:#ef4444;"></i> <span style="color:#ef4444;">الاشتراك: ملغي / محظور</span>';
             } else {
                 statusTextEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span>الاشتراك: نشط</span>';
             }
+        }
+
+        function renderCustomersTable() {
+            const tbody = document.getElementById('codesTableBody');
+            tbody.innerHTML = '';
+
+            customersList.forEach(cust => {
+                const tr = document.createElement('tr');
+                
+                let badgeHtml = '';
+                let actionsHtml = '';
+
+                if (cust.status === 'admin') {
+                    badgeHtml = '<span class="badge-active">نشط دائم</span>';
+                    actionsHtml = '<i class="fa-solid fa-shield" style="color: #10a37f;" title="حساب الأدمن محمي دائم"></i>';
+                } else if (cust.status === 'active') {
+                    badgeHtml = '<span class="badge-active">نشط</span>';
+                    actionsHtml = `
+                        <div class="table-actions">
+                            <button class="btn-action-icon btn-ban" title="حظر العميل" onclick="changeCustomerStatus('${cust.id}', 'banned')"><i class="fa-solid fa-ban"></i></button>
+                            <button class="btn-action-icon btn-refund" title="إلغاء واسترجاع" onclick="changeCustomerStatus('${cust.id}', 'refunded')"><i class="fa-solid fa-rotate-left"></i></button>
+                            <button class="btn-action-icon btn-del" title="حذف نهائي" onclick="deleteCustomerReal('${cust.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                } else if (cust.status === 'unused') {
+                    badgeHtml = '<span class="badge-unused">جاهز للإرسال</span>';
+                    actionsHtml = `
+                        <div class="table-actions">
+                            <button class="btn-action-icon btn-del" title="حذف نهائي" onclick="deleteCustomerReal('${cust.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                } else if (cust.status === 'banned') {
+                    badgeHtml = '<span class="badge-banned">محظور 🚫</span>';
+                    actionsHtml = `
+                        <div class="table-actions">
+                            <button class="btn-action-icon btn-ban" style="color:#10a37f;" title="فك الحظر" onclick="changeCustomerStatus('${cust.id}', 'active')"><i class="fa-solid fa-check"></i></button>
+                            <button class="btn-action-icon btn-del" title="حذف نهائي" onclick="deleteCustomerReal('${cust.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                } else if (cust.status === 'refunded') {
+                    badgeHtml = '<span class="badge-refunded">ملغي ومسترجع ↩️</span>';
+                    actionsHtml = `
+                        <div class="table-actions">
+                            <button class="btn-action-icon btn-del" title="حذف نهائي" onclick="deleteCustomerReal('${cust.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                }
+
+                tr.innerHTML = `
+                    <td><span style="font-weight: 700; color: #111827;">${cust.name}</span><br><span style="font-size: 11px; color: #6b7280;">${cust.phone}</span></td>
+                    <td>
+                        <div class="code-cell-wrapper">
+                            <span>${cust.code}</span>
+                            <button class="copy-btn" onclick="copyCode(this, '${cust.code}')"><i class="fa-regular fa-copy"></i> نسخ</button>
+                        </div>
+                    </td>
+                    <td>${cust.duration}</td>
+                    <td>${badgeHtml}</td>
+                    <td>${actionsHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            updateDashboardCounts();
+            localStorage.setItem('nivo_customers_list', JSON.stringify(customersList));
+        }
+
+        function changeCustomerStatus(id, newStatus) {
+            const cust = customersList.find(c => c.id === id);
+            if (cust) {
+                cust.status = newStatus;
+                renderCustomersTable();
+                const activeUserCode = localStorage.getItem('nivo_user_code');
+                if (activeUserCode === cust.code) {
+                    checkUserStatusDisplay(cust.code, localStorage.getItem('nivo_user_phone') || '');
+                }
+            }
+        }
+
+        /* حذف نهائي وحقيقي من القائمة والذاكرة */
+        function deleteCustomerReal(id) {
+            customersList = customersList.filter(c => c.id !== id);
+            renderCustomersTable();
+        }
+
+        function createCustomerCodeSubmit() {
+            const name = document.getElementById('newCustName').value.trim() || 'عميل جديد';
+            const phone = document.getElementById('newCustPhone').value.trim() || 'غير مسجل';
+            const rand = Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+            const newCode = 'NIVO-' + rand;
+
+            customersList.push({
+                id: Date.now().toString(),
+                name: name,
+                phone: phone,
+                code: newCode,
+                duration: '30 يوم',
+                status: 'unused'
+            });
+
+            document.getElementById('newCustName').value = '';
+            document.getElementById('newCustPhone').value = '';
+            closeGenerateModal();
+            renderCustomersTable();
+        }
+
+        function updateDashboardCounts() {
+            const activeCount = customersList.filter(c => c.status === 'active' || c.status === 'admin').length;
+            const unusedCount = customersList.filter(c => c.status === 'unused').length;
+            const blockedCount = customersList.filter(c => c.status === 'banned' || c.status === 'refunded').length;
+
+            document.getElementById('activeSubsCount').innerText = activeCount;
+            document.getElementById('availableCodesCount').innerText = unusedCount;
+            document.getElementById('blockedCount').innerText = blockedCount;
         }
 
         function showAdminView() {
@@ -1027,133 +1100,34 @@
             });
         }
 
-        function openGenerateModal() {
-            document.getElementById('newCustomerModal').style.display = 'flex';
-        }
-
-        function closeGenerateModal() {
-            document.getElementById('newCustomerModal').style.display = 'none';
-        }
-
-        function createCustomerCodeSubmit() {
-            const name = document.getElementById('newCustName').value.trim() || 'عميل جديد';
-            const phone = document.getElementById('newCustPhone').value.trim() || 'غير مسجل';
-
-            const rand = Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-            const newCode = 'NIVO-' + rand;
-
-            const tbody = document.getElementById('codesTableBody');
-            const tr = document.createElement('tr');
-            tr.setAttribute('data-code', newCode);
-            tr.innerHTML = `
-                <td><span style="font-weight: 700; color: #111827;">${name}</span><br><span style="font-size: 11px; color: #6b7280;">${phone}</span></td>
-                <td>
-                    <div class="code-cell-wrapper">
-                        <span>${newCode}</span>
-                        <button class="copy-btn" onclick="copyCode(this, '${newCode}')"><i class="fa-regular fa-copy"></i> نسخ</button>
-                    </div>
-                </td>
-                <td>30 يوم</td>
-                <td><span class="badge-unused">جاهز للإرسال</span></td>
-                <td>
-                    <div class="table-actions">
-                        <button class="btn-action-icon btn-ban" title="حظر العميل فوراً" onclick="banCustomer(this, '${newCode}')"><i class="fa-solid fa-ban"></i></button>
-                        <button class="btn-action-icon btn-refund" title="إلغاء واسترجاع الفلوس" onclick="refundCustomer(this, '${newCode}')"><i class="fa-solid fa-rotate-left"></i></button>
-                        <button class="btn-action-icon btn-del" title="حذف نهائي" onclick="deleteCustomerRow(this, '${newCode}')"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(tr);
-            
-            document.getElementById('newCustName').value = '';
-            document.getElementById('newCustPhone').value = '';
-            closeGenerateModal();
-            updateDashboardCounts();
-        }
-
-        /* حظر العميل وفصل حسابه فوراً */
-        function banCustomer(btn, code) {
-            if (code === 'NIVO-MASTER-2026') return alert('لا يمكن حظر حساب الأدمن الرئيسي!');
-            
-            const row = btn.closest('tr');
-            const statusCell = row.querySelector('td:nth-child(4)');
-            statusCell.innerHTML = '<span class="badge-banned">محظور 🚫</span>';
-            
-            if (!blockedCodes.includes(code)) {
-                blockedCodes.push(code);
-                localStorage.setItem('nivo_blocked_codes', JSON.stringify(blockedCodes));
-            }
-
-            const activeUserCode = localStorage.getItem('nivo_user_code');
-            if (activeUserCode === code) {
-                checkUserStatusDisplay(code, localStorage.getItem('nivo_user_phone') || '');
-            }
-            updateDashboardCounts();
-        }
-
-        /* إلغاء واسترجاع الكود */
-        function refundCustomer(btn, code) {
-            if (code === 'NIVO-MASTER-2026') return alert('لا يمكن إلغاء حساب الأدمن الرئيسي!');
-
-            const row = btn.closest('tr');
-            const statusCell = row.querySelector('td:nth-child(4)');
-            statusCell.innerHTML = '<span class="badge-refunded">ملغي ومسترجع ↩️</span>';
-
-            if (!blockedCodes.includes(code)) {
-                blockedCodes.push(code);
-                localStorage.setItem('nivo_blocked_codes', JSON.stringify(blockedCodes));
-            }
-
-            const activeUserCode = localStorage.getItem('nivo_user_code');
-            if (activeUserCode === code) {
-                checkUserStatusDisplay(code, localStorage.getItem('nivo_user_phone') || '');
-            }
-            updateDashboardCounts();
-        }
-
-        /* حذف العميل تماماً */
-        function deleteCustomerRow(btn, code) {
-            if (code === 'NIVO-MASTER-2026') return alert('لا يمكن حذف حساب الأدمن الرئيسي!');
-            btn.closest('tr').remove();
-            updateDashboardCounts();
-        }
-
-        function updateDashboardCounts() {
-            const activeCount = document.querySelectorAll('.badge-active').length;
-            const unusedCount = document.querySelectorAll('.badge-unused').length;
-            const blockedCount = document.querySelectorAll('.badge-banned, .badge-refunded').length;
-
-            const activeEl = document.getElementById('activeSubsCount');
-            const availEl = document.getElementById('availableCodesCount');
-            const blockEl = document.getElementById('blockedCount');
-
-            if (activeEl) activeEl.innerText = activeCount;
-            if (availEl) availEl.innerText = unusedCount;
-            if (blockEl) blockEl.innerText = blockedCount;
-        }
+        function openGenerateModal() { document.getElementById('newCustomerModal').style.display = 'flex'; }
+        function closeGenerateModal() { document.getElementById('newCustomerModal').style.display = 'none'; }
+        function reopenActivationScreen() { document.getElementById('activationModal').style.display = 'flex'; }
+        function closeActivationModal() { document.getElementById('activationModal').style.display = 'none'; }
 
         function handleActivationSubmit() {
-            const phone = document.getElementById('activationPhone').value.trim() || '01096056061';
-            const val = document.getElementById('activationInput').value.trim() || 'NIVO-MASTER-2026';
+            const phone = document.getElementById('activationPhone').value.trim();
+            const val = document.getElementById('activationInput').value.trim();
 
-            if (blockedCodes.includes(val) && val !== 'NIVO-MASTER-2026') {
-                alert('عذراً، هذا الاشتراك ملغي أو تم حظره من قبل الإدارة!');
-                return;
+            if (!val) return alert('يرجى إدخال كود التفعيل!');
+
+            const cust = customersList.find(c => c.code === val);
+
+            if (cust && (cust.status === 'banned' || cust.status === 'refunded') && val !== 'NIVO-MASTER-2026') {
+                return alert('عذراً، هذا الكود ملغي أو تم حظره من قبل الإدارة!');
             }
 
-            localStorage.setItem('nivo_user_phone', phone);
+            if (cust && cust.status === 'unused') {
+                cust.status = 'active';
+                if (phone) cust.phone = phone;
+                renderCustomersTable();
+            }
+
+            localStorage.setItem('nivo_user_phone', phone || 'غير مسجل');
             localStorage.setItem('nivo_user_code', val);
 
-            checkUserStatusDisplay(val, phone);
+            checkUserStatusDisplay(val, phone || 'غير مسجل');
             closeActivationModal();
-        }
-
-        function reopenActivationScreen() {
-            document.getElementById('activationModal').style.display = 'flex';
-        }
-
-        function closeActivationModal() {
-            document.getElementById('activationModal').style.display = 'none';
         }
 
         function toggleSidebar() {
@@ -1176,7 +1150,6 @@
         function renderHistoryList() {
             const historyList = document.getElementById('historyList');
             historyList.innerHTML = '';
-            
             const chatIds = Object.keys(chatsHistory);
             if (chatIds.length === 0) {
                 historyList.innerHTML = '<div style="font-size: 12px; color: #9ca3af; padding: 8px; text-align: center;">لا توجد محادثات سابقة</div>';
@@ -1260,7 +1233,9 @@
 
         function sendMessage() {
             const currentCode = localStorage.getItem('nivo_user_code') || '';
-            if (blockedCodes.includes(currentCode) && currentCode !== 'NIVO-MASTER-2026') {
+            const cust = customersList.find(c => c.code === currentCode);
+
+            if (cust && (cust.status === 'banned' || cust.status === 'refunded') && currentCode !== 'NIVO-MASTER-2026') {
                 alert('عذراً، هذا الحساب ملغي أو محظور. يرجى التواصل مع الإدارة.');
                 return;
             }
