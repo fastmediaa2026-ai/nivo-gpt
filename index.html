@@ -805,7 +805,7 @@
                         <button class="icon-btn attach-btn" title="إرفاق ملف" onclick="document.getElementById('fileInput').click()">
                             <i class="fa-solid fa-plus"></i>
                         </button>
-                        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelected(event)">
+                        <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelected(event)">
 
                         <textarea id="userInput" placeholder="اكتب رسالتك أو اطلب تحليلاً..." rows="1" oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
 
@@ -1263,19 +1263,14 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(uploadEvent) {
-                activeAttachment = {
-                    name: file.name,
-                    size: (file.size / 1024).toFixed(1) + ' KB',
-                    type: file.type,
-                    dataUrl: uploadEvent.target.result
-                };
-
-                document.getElementById('fileName').innerText = activeAttachment.name + ' (' + activeAttachment.size + ')';
-                document.getElementById('attachmentPreview').style.display = 'flex';
+            activeAttachment = {
+                name: file.name,
+                size: (file.size / 1024).toFixed(1) + ' KB',
+                type: file.type
             };
-            reader.readAsDataURL(file);
+
+            document.getElementById('fileName').innerText = activeAttachment.name + ' (' + activeAttachment.size + ')';
+            document.getElementById('attachmentPreview').style.display = 'flex';
         }
 
         function removeAttachment() {
@@ -1313,8 +1308,6 @@
             const firstUserMsg = text || (activeAttachment ? 'مرفق: ' + activeAttachment.name : 'محادثة');
             saveMessageToHistory(userMessageData, firstUserMsg);
 
-            const payloadAttachment = activeAttachment ? { ...activeAttachment } : null;
-
             inputField.value = '';
             inputField.style.height = 'auto';
             removeAttachment();
@@ -1326,7 +1319,7 @@
                 const response = await fetch(`${BACKEND_URL}/api/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, model: model, attachment: payloadAttachment })
+                    body: JSON.stringify({ message: text, model: model })
                 });
 
                 const data = await response.json();
@@ -1334,14 +1327,7 @@
 
                 if (response.ok && data.reply) {
                     if (data.isImage) {
-                        loadingElement.innerHTML = `
-                            <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
-                                <img src="${data.reply}" style="max-width: 100%; border-radius: 8px;" alt="صورة متولدة" />
-                                <a href="${data.reply}" target="_blank" download="nivo-generated-image.png" style="background: #10a37f; color: #ffffff; padding: 6px 12px; border-radius: 6px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: bold;">
-                                    <i class="fa-solid fa-download"></i> تحميل الصورة ⬇️
-                                </a>
-                            </div>
-                        `;
+                        loadingElement.innerHTML = `<img src="${data.reply}" style="max-width: 100%; border-radius: 8px; margin-top: 6px;" alt="صورة متولدة" />`;
                         saveMessageToHistory({ role: 'assistant', content: data.reply, isImage: true });
                     } else {
                         loadingElement.innerHTML = data.reply.replace(/\n/g, '<br>');
@@ -1366,22 +1352,10 @@
 
             let attachmentHtml = '';
             if (attachment) {
-                if (attachment.dataUrl && attachment.type && attachment.type.startsWith('image/')) {
-                    attachmentHtml = `<div style="margin-bottom: 8px;"><img src="${attachment.dataUrl}" style="max-width: 180px; max-height: 180px; border-radius: 8px; object-fit: cover; display: block;" alt="${attachment.name}"></div>`;
-                } else {
-                    attachmentHtml = '<div style="font-size: 12px; background: rgba(0,0,0,0.06); padding: 4px 8px; border-radius: 6px; margin-bottom: 6px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-paperclip"></i><span>' + attachment.name + '</span></div><br>';
-                }
+                attachmentHtml = '<div style="font-size: 12px; background: rgba(0,0,0,0.06); padding: 4px 8px; border-radius: 6px; margin-bottom: 6px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-paperclip"></i><span>' + attachment.name + '</span></div><br>';
             }
 
-            let contentHtml = isImage ? `
-                <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
-                    <img src="${text}" style="max-width: 100%; border-radius: 8px;" alt="صورة متولدة" />
-                    <a href="${text}" target="_blank" download="nivo-generated-image.png" style="background: #10a37f; color: #ffffff; padding: 6px 12px; border-radius: 6px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: bold;">
-                        <i class="fa-solid fa-download"></i> تحميل الصورة ⬇️
-                    </a>
-                </div>
-            ` : `<div>${text}</div>`;
-
+            let contentHtml = isImage ? `<img src="${text}" style="max-width: 100%; border-radius: 8px;" alt="Generated Image" />` : `<div>${text}</div>`;
             row.innerHTML = '<div class="message-bubble">' + attachmentHtml + contentHtml + '</div>';
 
             messagesWrapper.appendChild(row);
