@@ -43,19 +43,80 @@ app.post('/api/chat', async (req, res) => {
     }
 
     // ==========================================
-    // 1. IMAGE GENERATION - REPLICATE
-    // SDXL LIGHTNING 4 STEP
+    // 1. SDXL LIGHTNING
+    // GPT-4o-mini → English Prompt
+    // → Replicate → Image
     // ==========================================
 
     if (model === 'sdxl-lightning') {
 
         try {
 
+            console.log('Original user prompt:', message);
+
+            // ------------------------------------------
+            // STEP 1: Translate / Optimize Prompt
+            // using GPT-4o-mini
+            // ------------------------------------------
+
+            const promptCompletion =
+                await openai.chat.completions.create({
+
+                    model: 'gpt-4o-mini',
+
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `
+You are an expert AI image prompt translator and optimizer.
+
+The user may write their image request in Arabic or any other language.
+
+Your job is to understand exactly what the user wants and convert it into a detailed, high-quality English prompt for an SDXL image generation model.
+
+IMPORTANT RULES:
+- Do NOT answer the user.
+- Do NOT explain anything.
+- Return ONLY the final English image-generation prompt.
+- Preserve the user's requested subject, objects, people, environment, clothing, colors, composition, camera angle, lighting, mood and style.
+- If the user requests Arabic text inside the image, preserve that text exactly and explicitly tell the image model that the text must appear in Arabic.
+- Do not add unrelated objects or ideas.
+- Improve the prompt with useful visual details when appropriate.
+- Make the prompt clear and optimized for SDXL.
+`
+                        },
+                        {
+                            role: 'user',
+                            content: message
+                        }
+                    ],
+
+                    temperature: 0.3
+                });
+
+            const translatedPrompt =
+                promptCompletion?.choices?.[0]?.message?.content?.trim();
+
+            if (!translatedPrompt) {
+                throw new Error(
+                    'فشل GPT-4o-mini في تجهيز الـ Prompt'
+                );
+            }
+
+            console.log(
+                'Optimized English prompt:',
+                translatedPrompt
+            );
+
+            // ------------------------------------------
+            // STEP 2: Generate Image with Replicate
+            // ------------------------------------------
+
             const output = await replicate.run(
                 'bytedance/sdxl-lightning-4step:6f7a773af6fc3e8de9d5a3c00be77c17308914bf67772726aff83496ba1e3bbe',
                 {
                     input: {
-                        prompt: message,
+                        prompt: translatedPrompt,
                         width: 1024,
                         height: 1024,
                         num_outputs: 1
@@ -63,12 +124,21 @@ app.post('/api/chat', async (req, res) => {
                 }
             );
 
-            console.log('Replicate output:', output);
+            console.log(
+                'Replicate output:',
+                output
+            );
+
+            // ------------------------------------------
+            // STEP 3: Extract Image URL
+            // ------------------------------------------
 
             let imageUrl = '';
 
-            // Replicate returns an array
-            if (Array.isArray(output) && output.length > 0) {
+            if (
+                Array.isArray(output) &&
+                output.length > 0
+            ) {
 
                 const first = output[0];
 
@@ -88,12 +158,13 @@ app.post('/api/chat', async (req, res) => {
                     imageUrl = first.url;
                 }
 
-                else if (typeof first === 'string') {
+                else if (
+                    typeof first === 'string'
+                ) {
                     imageUrl = first;
                 }
             }
 
-            // Replicate returns a single FileOutput
             else if (
                 output &&
                 typeof output.url === 'function'
@@ -101,50 +172,53 @@ app.post('/api/chat', async (req, res) => {
                 imageUrl = output.url();
             }
 
-            // Replicate returns a direct URL
-            else if (typeof output === 'string') {
+            else if (
+                typeof output === 'string'
+            ) {
                 imageUrl = output;
             }
 
             if (!imageUrl) {
+
                 console.error(
                     'Could not extract image URL:',
                     output
                 );
 
                 throw new Error(
-                    'فشل استخراج رابط الصورة من استجابة Replicate'
+                    'فشل استخراج رابط الصورة من Replicate'
                 );
             }
 
             console.log(
-                'Replicate image URL:',
+                'Generated image:',
                 imageUrl
             );
 
             return res.json({
                 reply: imageUrl,
                 isImage: true,
-                model: 'sdxl-lightning'
+                model: 'sdxl-lightning',
+                prompt: translatedPrompt
             });
 
         } catch (imgError) {
 
             console.error(
-                'Replicate Error:',
+                'Image Generation Error:',
                 imgError
             );
 
             return res.status(500).json({
                 error:
                     imgError.message ||
-                    'فشل توليد الصورة باستخدام Replicate'
+                    'فشل توليد الصورة'
             });
         }
     }
 
     // ==========================================
-    // 2. TEXT GENERATION - OPENAI
+    // 2. OPENAI TEXT MODELS
     // ==========================================
 
     try {
@@ -185,7 +259,13 @@ app.post('/api/chat', async (req, res) => {
             });
 
         const reply =
-            completion.choices[0].message.content;
+            completion?.choices?.[0]?.message?.content;
+
+        if (!reply) {
+            throw new Error(
+                'OpenAI لم يرجع نصاً'
+            );
+        }
 
         return res.json({
             reply: reply,
