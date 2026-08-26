@@ -64,7 +64,7 @@
         .chat-history {
             flex: 1;
             overflow-y: auto;
-            margin-top: 20px;
+            margin-top: 16px;
         }
 
         .history-label {
@@ -127,34 +127,44 @@
             gap: 8px;
         }
 
-        .admin-badge {
+        .user-status-card {
+            background: rgba(16, 163, 127, 0.08);
+            border: 1px solid rgba(16, 163, 127, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .user-status-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             font-size: 12px;
-            color: #16a34a;
-            padding: 8px 10px;
-            background: rgba(22, 163, 74, 0.08);
-            border-radius: 6px;
-            font-weight: 600;
+            font-weight: 700;
+            color: #10a37f;
         }
 
-        .preview-client-btn {
-            background: #ffffff;
-            border: 1px dashed #d1d5db;
+        .user-status-sub {
+            font-size: 11px;
             color: #4b5563;
+        }
+
+        .reset-code-btn {
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            color: #6b7280;
             padding: 6px 10px;
             border-radius: 6px;
-            font-size: 11.5px;
+            font-size: 11px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
+            text-align: center;
         }
 
-        .preview-client-btn:hover {
-            background: #f3f4f6;
+        .reset-code-btn:hover {
+            background: #f9fafb;
+            color: #111827;
         }
 
         .sidebar-overlay {
@@ -246,7 +256,7 @@
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 16px 16px 110px 16px; /* مساحة فارغة تحت تضمن عدم تغطية الرسائل */
+            padding: 16px 16px 110px 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -304,10 +314,9 @@
             padding-right: 0;
         }
 
-        /* تثبيت شريط الإدخال بشكل قاطع فوق شريط المتصفح */
         .input-area-wrapper {
             position: fixed;
-            bottom: 25px; /* رفع الشريط بمقدار ثابت يضمن ظهوره فوق شريط الكروم */
+            bottom: 25px;
             left: 0;
             right: 0;
             padding: 0 16px;
@@ -398,12 +407,12 @@
             color: #1f2937;
         }
 
-        /* نافذة التفعيل المنبثقة للعميل */
+        /* نافذة التفعيل التلقائية للعميل */
         .activation-modal {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(4px);
             z-index: 200;
             align-items: center;
@@ -419,18 +428,6 @@
             padding: 24px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             text-align: center;
-            position: relative;
-        }
-
-        .close-modal-btn {
-            position: absolute;
-            top: 14px;
-            left: 14px;
-            background: none;
-            border: none;
-            color: #9ca3af;
-            font-size: 16px;
-            cursor: pointer;
         }
 
         .code-input {
@@ -440,15 +437,12 @@
             font-size: 16px;
             letter-spacing: 2px;
             font-weight: bold;
-            border: 1.5px solid #d1d5db;
+            border: 1.5px solid #10a37f;
             border-radius: 8px;
             margin: 16px 0;
             outline: none;
             text-transform: uppercase;
-        }
-
-        .code-input:focus {
-            border-color: #10a37f;
+            background: #f9fafb;
         }
 
         .activate-btn {
@@ -507,13 +501,15 @@
             </div>
 
             <div class="sidebar-footer">
-                <div class="admin-badge">
-                    <span><i class="fa-solid fa-shield-halved"></i> وضع الأدمن (نشط)</span>
-                    <i class="fa-solid fa-circle-check"></i>
+                <div class="user-status-card">
+                    <div class="user-status-header">
+                        <span><i class="fa-solid fa-circle-check"></i> الاشتراك: نشط</span>
+                        <span>30 يوم</span>
+                    </div>
+                    <div class="user-status-sub" id="displayUserCode">الكود: NIVO-MASTER-2026</div>
                 </div>
-                <button class="preview-client-btn" onclick="openActivationModal(); closeSidebarOnMobile();">
-                    <i class="fa-solid fa-eye"></i>
-                    <span>معاينة نافذة كود العميل</span>
+                <button class="reset-code-btn" onclick="reopenActivationScreen(); closeSidebarOnMobile();">
+                    <i class="fa-solid fa-key"></i> تجربة إدخال كود جديد
                 </button>
             </div>
         </aside>
@@ -552,7 +548,6 @@
                 <div class="messages-wrapper" id="messagesWrapper"></div>
             </div>
 
-            <!-- شريط الإدخال الثابت في مكان محدد -->
             <div class="input-area-wrapper">
                 <div class="input-box-container">
                     
@@ -582,16 +577,17 @@
         </main>
     </div>
 
-    <!-- نافذة التفعيل المنبثقة -->
+    <!-- نافذة تفعيل الكود للعميل (مملوءة تلقائياً بكود الماستر) -->
     <div class="activation-modal" id="activationModal">
         <div class="activation-card">
-            <button class="close-modal-btn" onclick="closeActivationModal()"><i class="fa-solid fa-xmark"></i></button>
-            <img src="logo.png" alt="NIVO" style="width: 42px; height: 42px; border-radius: 8px; margin-bottom: 8px;" onerror="this.src='https://api.iconify.design/logos:openai-icon.svg'">
+            <img src="logo.png" alt="NIVO" style="width: 44px; height: 44px; border-radius: 8px; margin-bottom: 8px;" onerror="this.src='https://api.iconify.design/logos:openai-icon.svg'">
             <h3 style="font-size: 17px; margin-bottom: 4px;">تفعيل الاشتراك</h3>
             <p style="font-size: 12.5px; color: #6b7280;">أدخل كود الاشتراك لتفعيل الحساب لمدة شهر</p>
 
-            <input type="text" class="code-input" id="activationInput" placeholder="NIVO-XXXX-XXXX">
-            <button class="activate-btn" onclick="handleActivationSubmit()">تفعيل الحساب الآن</button>
+            <input type="text" class="code-input" id="activationInput" value="NIVO-MASTER-2026">
+            <button class="activate-btn" onclick="handleActivationSubmit()">
+                <i class="fa-solid fa-bolt"></i> تفعيل وبدء الاستخدام فوراً
+            </button>
         </div>
     </div>
 
@@ -600,27 +596,30 @@
         let chatsHistory = JSON.parse(localStorage.getItem('nivo_chats_fixed') || '{}');
         let activeAttachment = null;
 
+        // فحص حالة التفعيل: إذا كان مفعلاً من قبل يفتح فوراً، وإذا أول مرة تظهر نافذة التفعيل
         document.addEventListener('DOMContentLoaded', () => {
+            const savedCode = localStorage.getItem('nivo_user_code');
+            if (savedCode) {
+                document.getElementById('displayUserCode').innerText = 'الكود: ' + savedCode;
+                document.getElementById('activationModal').style.display = 'none';
+            } else {
+                // تفعيل تلقائي فوري بكود الماستر لراحتك التامة
+                localStorage.setItem('nivo_user_code', 'NIVO-MASTER-2026');
+                document.getElementById('activationModal').style.display = 'none';
+            }
             renderHistoryList();
             loadChat(currentChatId);
         });
 
-        function openActivationModal() {
-            document.getElementById('activationModal').style.display = 'flex';
-        }
-
-        function closeActivationModal() {
+        function handleActivationSubmit() {
+            const val = document.getElementById('activationInput').value.trim() || 'NIVO-MASTER-2026';
+            localStorage.setItem('nivo_user_code', val);
+            document.getElementById('displayUserCode').innerText = 'الكود: ' + val;
             document.getElementById('activationModal').style.display = 'none';
         }
 
-        function handleActivationSubmit() {
-            const val = document.getElementById('activationInput').value.trim();
-            if (val) {
-                alert('تم تفعيل الاشتراك بنجاح لمدة 30 يوماً!');
-                closeActivationModal();
-            } else {
-                alert('يرجى كتابة كود الاشتراك أولاً');
-            }
+        function reopenActivationScreen() {
+            document.getElementById('activationModal').style.display = 'flex';
         }
 
         function toggleSidebar() {
