@@ -17,28 +17,30 @@ app.get('/', (req, res) => {
 app.post('/api/chat', async (req, res) => {
     const { message, model } = req.body;
 
-    // 1. توليد الصور عبر Replicate الرسمي
+    // 1. توليد الصور عبر Replicate (اسم الموديل المباشر بدون هاش)
     if (model === 'sdxl-lightning') {
         try {
-            const input = {
-                prompt: message
-            };
-
             const output = await replicate.run(
-                "bytedance/sdxl-lightning-4step:5599ed30703defd1d160a25a63321b4dec97101d98b4674bcc24237e78a67f35",
-                { input }
+                "bytedance/sdxl-lightning-4step",
+                {
+                    input: {
+                        prompt: message
+                    }
+                }
             );
 
-            // استخراج رابط الصورة بالطريقة الرسمية الموضحة في Replicate
             let imageUrl = '';
-            if (output && output[0]) {
-                if (typeof output[0].url === 'function') {
-                    imageUrl = output[0].url();
-                } else if (typeof output[0] === 'string') {
-                    imageUrl = output[0];
-                } else if (output[0].url) {
-                    imageUrl = output[0].url;
-                }
+            if (Array.isArray(output) && output.length > 0) {
+                const first = output[0];
+                imageUrl = (typeof first === 'object' && first.url) ? (typeof first.url === 'function' ? first.url() : first.url) : String(first);
+            } else if (typeof output === 'string') {
+                imageUrl = output;
+            } else if (output && typeof output.url === 'function') {
+                imageUrl = output.url();
+            }
+
+            if (!imageUrl) {
+                throw new Error('لم يتم استلام رابط صورة صالح من Replicate');
             }
 
             return res.json({ reply: imageUrl, isImage: true });
