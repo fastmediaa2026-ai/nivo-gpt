@@ -6,7 +6,7 @@ const Replicate = require('replicate');
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '25mb' }));
 
 // ==========================================
 // API CLIENTS
@@ -34,16 +34,16 @@ app.get('/', (req, res) => {
 
 app.post('/api/chat', async (req, res) => {
 
-    const { message, model } = req.body;
+    const { message, model, attachment } = req.body;
 
-    if (!message) {
+    if (!message && !attachment) {
         return res.status(400).json({
             error: 'الرسالة مطلوبة'
         });
     }
 
     // ==========================================
-    // 1. SDXL LIGHTNING
+    // 1. SDXL LIGHTNING (كود شات جي بي تي كما هو تماماً)
     // GPT-4o-mini → English Prompt
     // → Replicate → Image
     // ==========================================
@@ -87,7 +87,7 @@ IMPORTANT RULES:
                         },
                         {
                             role: 'user',
-                            content: message
+                            content: message || 'high quality photo'
                         }
                     ],
 
@@ -218,7 +218,7 @@ IMPORTANT RULES:
     }
 
     // ==========================================
-    // 2. OPENAI TEXT MODELS
+    // 2. OPENAI TEXT & VISION MODELS
     // ==========================================
 
     try {
@@ -238,12 +238,27 @@ IMPORTANT RULES:
         }
 
         if (model === 'o3') {
-            targetModel = 'o3';
+            targetModel = 'o1';
         }
 
         console.log(
             `OpenAI model: ${targetModel}`
         );
+
+        // تجهيز المدخلات: نصوص + صور إن وجدت
+        let userContent = [];
+        if (message && message.trim()) {
+            userContent.push({ type: "text", text: message.trim() });
+        } else {
+            userContent.push({ type: "text", text: "حلل هذه الصورة بالتفصيل واشرح ما تحتويه." });
+        }
+
+        if (attachment && attachment.dataUrl) {
+            userContent.push({
+                type: "image_url",
+                image_url: { url: attachment.dataUrl }
+            });
+        }
 
         const completion =
             await openai.chat.completions.create({
@@ -253,7 +268,7 @@ IMPORTANT RULES:
                 messages: [
                     {
                         role: 'user',
-                        content: message
+                        content: userContent
                     }
                 ]
             });
