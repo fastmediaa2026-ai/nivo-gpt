@@ -1,20 +1,97 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nivo Admin & Preview</title>
     <link rel="stylesheet" href="styles.css">
-    <title>نيفو جي بي تي</title>
+    <!-- أيقونات FontAwesome للأزرار الاحترافية -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <h1>نيفو جي بي تي</h1>
-        <div id="chatbox">
-            <!-- مكان عرض المحادثة -->
-        </div>
-        <input type="text" id="userInput" placeholder="اكتب رسالتك هنا...">
-        <button onclick="sendMessage()">إرسال</button>
+
+    <div class="app-layout">
+        <!-- 1. القائمة الجانبية (Sidebar) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="new-chat-btn" onclick="startNewChat()">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>محادثة جديدة</span>
+                </button>
+            </div>
+
+            <!-- سجل المحادثات السابقة -->
+            <div class="chat-history" id="chatHistory">
+                <div class="history-label">المحادثات السابقة</div>
+                <div id="historyList"></div>
+            </div>
+
+            <!-- معلومات الأدمن الثابتة بالأسفل -->
+            <div class="sidebar-footer">
+                <div class="admin-badge">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>وضع المعاينة والتحكم (Admin)</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 2. منطقة الشات والمعاينة الرئيسية -->
+        <main class="main-content">
+            <!-- الهيدر العلوي الخفيف -->
+            <header class="top-header">
+                <div class="model-selector-container">
+                    <span class="logo-text">NIVO</span>
+                    <select id="modelSelect" class="model-dropdown">
+                        <option value="gpt-4o">GPT-4o (افتراضي)</option>
+                        <option value="o3-mini">o3-mini (استنتاج سريع)</option>
+                        <option value="replicate-image">توليد صور (Replicate)</option>
+                    </select>
+                </div>
+            </header>
+
+            <!-- صندوق عرض الرسائل -->
+            <div class="chat-container" id="chatContainer">
+                <div class="welcome-screen" id="welcomeScreen">
+                    <div class="welcome-icon"><i class="fa-solid fa-sparkles"></i></div>
+                    <h2>كيف يمكنني مساعدتك اليوم؟</h2>
+                </div>
+                <div class="messages-wrapper" id="messagesWrapper"></div>
+            </div>
+
+            <!-- 3. شريط الإدخال المدمج الشامل (Pill Bar) -->
+            <div class="input-area-wrapper">
+                <div class="input-box-container">
+                    
+                    <!-- معاينة الملف المرفوع إن وجد فوق الحقل -->
+                    <div class="attachment-preview" id="attachmentPreview" style="display: none;">
+                        <div class="file-info">
+                            <i class="fa-solid fa-file" id="fileIcon"></i>
+                            <span id="fileName">document.pdf</span>
+                        </div>
+                        <button class="remove-file-btn" onclick="removeAttachment()"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <div class="input-row">
+                        <!-- زر المشبك/البلس المدمج بالداخل على اليمين -->
+                        <button class="icon-btn attach-btn" title="إرفاق ملف" onclick="document.getElementById('fileInput').click()">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                        <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelected(event)">
+
+                        <!-- حقل الكتابة المرن -->
+                        <textarea id="userInput" placeholder="اكتب رسالتك أو اطلب تحليلاً..." rows="1" oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
+
+                        <!-- زر الإرسال المدمج على اليسار -->
+                        <button class="icon-btn send-btn" id="sendBtn" title="إرسال" onclick="sendMessage()">
+                            <i class="fa-solid fa-arrow-up"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </main>
     </div>
+
     <script src="app.js"></script>
 </body>
 </html>
