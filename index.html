@@ -513,7 +513,6 @@
             margin-top: 6px;
         }
 
-        /* ================== لوحة تحكم الأدمن ================== */
         #adminDashboardView {
             display: none;
             height: 100%;
@@ -716,7 +715,6 @@
 </head>
 <body>
 
-    <!-- 1. شاشة الشات والعميل -->
     <div id="userChatView">
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
@@ -775,9 +773,11 @@
 
                 <div class="model-selector-container">
                     <select id="modelSelect" class="model-dropdown">
-                        <option value="gpt-4o">GPT-4o (افتراضي)</option>
-                        <option value="o3-mini">o3-mini (استنتاج سريع)</option>
-                        <option value="replicate-image">توليد صور (Replicate)</option>
+                        <option value="gpt-4o-mini">gpt-4o-mini (سريع واقتصادي)</option>
+                        <option value="gpt-4o">gpt-4o (ذكي وشامل)</option>
+                        <option value="o3-mini">o3-mini (سريع وذكي)</option>
+                        <option value="o3">o3 (تحليل متقدم)</option>
+                        <option value="sdxl-lightning">توليد الصور (SDXL Lightning)</option>
                     </select>
                 </div>
             </header>
@@ -819,7 +819,6 @@
         </main>
     </div>
 
-    <!-- 2. لوحة تحكم الأدمن -->
     <div id="adminDashboardView">
         <div class="admin-container">
             <div class="admin-top-bar">
@@ -867,16 +866,13 @@
                                 <th>إجراءات التحكم</th>
                             </tr>
                         </thead>
-                        <tbody id="codesTableBody">
-                            <!-- جدول ديناميكي محفوظ في الذاكرة -->
-                        </tbody>
+                        <tbody id="codesTableBody"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- نافذة تفعيل الكود للعميل -->
     <div class="activation-modal" id="activationModal">
         <div class="activation-card">
             <button class="close-modal-x" onclick="closeActivationModal()" title="إغلاق والعودة"><i class="fa-solid fa-xmark"></i></button>
@@ -900,7 +896,6 @@
         </div>
     </div>
 
-    <!-- نافذة إنشاء كود لعميل جديد -->
     <div class="activation-modal" id="newCustomerModal">
         <div class="activation-card">
             <button class="close-modal-x" onclick="closeGenerateModal()" title="إغلاق"><i class="fa-solid fa-xmark"></i></button>
@@ -924,6 +919,8 @@
     </div>
 
     <script>
+        const BACKEND_URL = 'https://nivo-gpt-production.up.railway.app';
+
         let currentChatId = Date.now().toString();
         let chatsHistory = JSON.parse(localStorage.getItem('nivo_chats_fixed') || '{}');
         let activeAttachment = null;
@@ -938,10 +935,8 @@
             let savedCode = localStorage.getItem('nivo_user_code') || 'NIVO-MASTER-2026';
             let savedPhone = localStorage.getItem('nivo_user_phone') || '01096056061';
             
-            // تحقق إذا كان الكود المحفوظ تم حذفه تماماً من القائمة ولم يعد موجوداً
             const exists = customersList.find(c => c.code === savedCode);
             if (!exists) {
-                // إذا تم حذفه، نجعله فارغاً أو نجبره على نافذة إدخال الكود فوراً
                 localStorage.removeItem('nivo_user_code');
                 localStorage.removeItem('nivo_user_phone');
                 openActivationScreen();
@@ -1063,7 +1058,6 @@
             updateDashboardCounts();
             localStorage.setItem('nivo_customers_list', JSON.stringify(customersList));
 
-            // تحديث شاشة العميل فوراً للتأكد إذا تم حذف الكود النشط
             const activeCode = localStorage.getItem('nivo_user_code');
             const activePhone = localStorage.getItem('nivo_user_phone');
             checkUserStatusDisplay(activeCode, activePhone);
@@ -1083,7 +1077,6 @@
                 return alert('لا يمكن حذف حساب الأدمن الرئيسي!');
             }
 
-            // إذا كان الكود المحذوف هو نفس الكود النشط حالياً على الشاشة، يتم إزالته وإظهار نافذة التفعيل
             const activeCode = localStorage.getItem('nivo_user_code');
             if (cust && cust.code === activeCode) {
                 localStorage.removeItem('nivo_user_code');
@@ -1239,7 +1232,7 @@
             if (chatsHistory[id] && chatsHistory[id].messages.length > 0) {
                 welcomeScreen.style.display = 'none';
                 chatsHistory[id].messages.forEach(msg => {
-                    appendMessageUI(msg.role, msg.content, msg.attachment);
+                    appendMessageUI(msg.role, msg.content, msg.attachment, null, msg.isImage);
                 });
             } else {
                 welcomeScreen.style.display = 'block';
@@ -1286,12 +1279,12 @@
             document.getElementById('attachmentPreview').style.display = 'none';
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const currentCode = localStorage.getItem('nivo_user_code') || '';
             const cust = customersList.find(c => c.code === currentCode);
 
             if (!currentCode || (!cust && currentCode !== 'NIVO-MASTER-2026') || (cust && (cust.status === 'banned' || cust.status === 'refunded'))) {
-                alert('عذراً، هذا الحساب غير موجود أو تم حذفه نهائياً من الإدارة.');
+                alert('عذراً، هذا الحساب غير موجود أو تم إلغاؤه من الإدارة.');
                 reopenActivationScreen();
                 return;
             }
@@ -1320,19 +1313,38 @@
             removeAttachment();
 
             const loadingId = 'loading-' + Date.now();
-            appendMessageUI('assistant', '<i class="fa-solid fa-spinner fa-spin"></i> جاري توليد الرد...', null, loadingId);
+            appendMessageUI('assistant', '<i class="fa-solid fa-spinner fa-spin"></i> جاري الاتصال بالذكاء الاصطناعي...', null, loadingId);
 
-            setTimeout(() => {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text, model: model })
+                });
+
+                const data = await response.json();
+                const loadingElement = document.getElementById(loadingId);
+
+                if (response.ok && data.reply) {
+                    if (data.isImage) {
+                        loadingElement.innerHTML = `<img src="${data.reply}" style="max-width: 100%; border-radius: 8px; margin-top: 6px;" alt="صورة متولدة" />`;
+                        saveMessageToHistory({ role: 'assistant', content: data.reply, isImage: true });
+                    } else {
+                        loadingElement.innerHTML = data.reply.replace(/\n/g, '<br>');
+                        saveMessageToHistory({ role: 'assistant', content: data.reply });
+                    }
+                } else {
+                    loadingElement.innerHTML = `<span style="color: #ef4444;"><i class="fa-solid fa-circle-exclamation"></i> ${data.error || 'خطأ في استلام الرد'}</span>`;
+                }
+            } catch (err) {
                 const loadingElement = document.getElementById(loadingId);
                 if (loadingElement) {
-                    const previewReply = '[معاينة وضع ' + model + ']: تم استلام طلبك بنجاح. الواجهة جاهزة بالكامل لربط استدعاء السيرفر عند التنفيذ.';
-                    loadingElement.innerHTML = previewReply;
-                    saveMessageToHistory({ role: 'assistant', content: previewReply });
+                    loadingElement.innerHTML = '<span style="color: #ef4444;"><i class="fa-solid fa-circle-exclamation"></i> تعذر الاتصال بسيرفر Railway، تأكد من تشغيل السيرفر.</span>';
                 }
-            }, 1000);
+            }
         }
 
-        function appendMessageUI(role, text, attachment, elementId) {
+        function appendMessageUI(role, text, attachment, elementId, isImage) {
             const messagesWrapper = document.getElementById('messagesWrapper');
             const row = document.createElement('div');
             row.className = 'message-row ' + role;
@@ -1343,7 +1355,8 @@
                 attachmentHtml = '<div style="font-size: 12px; background: rgba(0,0,0,0.06); padding: 4px 8px; border-radius: 6px; margin-bottom: 6px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-paperclip"></i><span>' + attachment.name + '</span></div><br>';
             }
 
-            row.innerHTML = '<div class="message-bubble">' + attachmentHtml + '<div>' + text + '</div></div>';
+            let contentHtml = isImage ? `<img src="${text}" style="max-width: 100%; border-radius: 8px;" alt="Generated Image" />` : `<div>${text}</div>`;
+            row.innerHTML = '<div class="message-bubble">' + attachmentHtml + contentHtml + '</div>';
 
             messagesWrapper.appendChild(row);
             document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
