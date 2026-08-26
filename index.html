@@ -21,7 +21,6 @@
             overflow: hidden;
         }
 
-        /* حاوية واجهة الشات */
         #userChatView {
             display: flex;
             height: 100%;
@@ -418,7 +417,6 @@
             color: #1f2937;
         }
 
-        /* نافذة التفعيل المنبثقة */
         .activation-modal {
             display: none;
             position: fixed;
@@ -468,7 +466,7 @@
             cursor: pointer;
         }
 
-        /* ================== تصميم لوحة تحكم الأدمن ================== */
+        /* ================== شاشة لوحة تحكم الأدمن ================== */
         #adminDashboardView {
             display: none;
             height: 100%;
@@ -574,6 +572,36 @@
             border-bottom: 1px solid #f3f4f6;
         }
 
+        .code-cell-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .copy-btn {
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            color: #4b5563;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .copy-btn.copied {
+            background: #10a37f;
+            color: #ffffff;
+            border-color: #10a37f;
+        }
+
         .badge-active {
             background: rgba(22, 163, 74, 0.1);
             color: #16a34a;
@@ -644,12 +672,10 @@
                     <div class="user-status-sub" id="displayUserCode">الكود: NIVO-MASTER-2026</div>
                 </div>
 
-                <!-- زر إعادة فتح نافذة الكود -->
                 <button class="action-link-btn" onclick="reopenActivationScreen(); closeSidebarOnMobile();">
                     <i class="fa-solid fa-key"></i> تجربة إدخال كود جديد
                 </button>
 
-                <!-- زر الانتقال إلى لوحة تحكم الأدمن -->
                 <button class="action-link-btn admin-switch-btn" onclick="showAdminView(); closeSidebarOnMobile();">
                     <i class="fa-solid fa-shield-halved"></i> لوحة تحكم الأدمن
                 </button>
@@ -735,11 +761,11 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="stat-title">المشتركين النشطين</span>
-                    <span class="stat-number" id="activeSubsCount">1</span>
+                    <span class="stat-number">1</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-title">الأكواد الجاهزة للبيع</span>
-                    <span class="stat-number" id="availableCodesCount">4</span>
+                    <span class="stat-number" id="availableCodesCount">2</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-title">استهلاك النماذج</span>
@@ -767,16 +793,37 @@
                         </thead>
                         <tbody id="codesTableBody">
                             <tr>
-                                <td style="font-weight: bold; letter-spacing: 1px;">NIVO-MASTER-2026</td>
+                                <td>
+                                    <div class="code-cell-wrapper">
+                                        <span>NIVO-MASTER-2026</span>
+                                        <button class="copy-btn" onclick="copyCode(this, 'NIVO-MASTER-2026')"><i class="fa-regular fa-copy"></i> نسخ</button>
+                                    </div>
+                                </td>
                                 <td>مفتوح (أدمن)</td>
                                 <td><span class="badge-active">نشط دائم</span></td>
                                 <td><i class="fa-solid fa-lock" style="color: #9ca3af;"></i></td>
                             </tr>
                             <tr>
-                                <td style="font-weight: bold; letter-spacing: 1px;">NIVO-78A1-99B2</td>
+                                <td>
+                                    <div class="code-cell-wrapper">
+                                        <span>NIVO-78A1-99B2</span>
+                                        <button class="copy-btn" onclick="copyCode(this, 'NIVO-78A1-99B2')"><i class="fa-regular fa-copy"></i> نسخ</button>
+                                    </div>
+                                </td>
                                 <td>30 يوم</td>
                                 <td><span class="badge-unused">جاهز للإرسال</span></td>
-                                <td><button style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="this.closest('tr').remove()"><i class="fa-solid fa-trash"></i></button></td>
+                                <td><button style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="deleteAdminCode(this)"><i class="fa-solid fa-trash"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="code-cell-wrapper">
+                                        <span>NIVO-AK5F-DW00</span>
+                                        <button class="copy-btn" onclick="copyCode(this, 'NIVO-AK5F-DW00')"><i class="fa-regular fa-copy"></i> نسخ</button>
+                                    </div>
+                                </td>
+                                <td>30 يوم</td>
+                                <td><span class="badge-unused">جاهز للإرسال</span></td>
+                                <td><button style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="deleteAdminCode(this)"><i class="fa-solid fa-trash"></i></button></td>
                             </tr>
                         </tbody>
                     </table>
@@ -813,7 +860,6 @@
             loadChat(currentChatId);
         });
 
-        /* وظائف التبديل بين واجهة الشات ولوحة الأدمن */
         function showAdminView() {
             document.getElementById('userChatView').style.display = 'none';
             document.getElementById('adminDashboardView').style.display = 'block';
@@ -824,18 +870,47 @@
             document.getElementById('userChatView').style.display = 'flex';
         }
 
+        function copyCode(btn, codeText) {
+            navigator.clipboard.writeText(codeText).then(() => {
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> تم النسخ';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.classList.remove('copied');
+                }, 1500);
+            });
+        }
+
         function generateNewCode() {
             const rand = Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
             const newCode = 'NIVO-' + rand;
             const tbody = document.getElementById('codesTableBody');
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="font-weight: bold; letter-spacing: 1px;">${newCode}</td>
+                <td>
+                    <div class="code-cell-wrapper">
+                        <span>${newCode}</span>
+                        <button class="copy-btn" onclick="copyCode(this, '${newCode}')"><i class="fa-regular fa-copy"></i> نسخ</button>
+                    </div>
+                </td>
                 <td>30 يوم</td>
                 <td><span class="badge-unused">جاهز للإرسال</span></td>
-                <td><button style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="this.closest('tr').remove()"><i class="fa-solid fa-trash"></i></button></td>
+                <td><button style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="deleteAdminCode(this)"><i class="fa-solid fa-trash"></i></button></td>
             `;
             tbody.appendChild(tr);
+            updateAvailableCount();
+        }
+
+        function deleteAdminCode(btn) {
+            btn.closest('tr').remove();
+            updateAvailableCount();
+        }
+
+        function updateAvailableCount() {
+            const unusedCount = document.querySelectorAll('.badge-unused').length;
+            const el = document.getElementById('availableCodesCount');
+            if (el) el.innerText = unusedCount;
         }
 
         function handleActivationSubmit() {
